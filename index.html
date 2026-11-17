@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRBAK - Σύστημα Διαχείρισης Προσωπικού</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax5/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Fallback QR generator library via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            .print-area { box-shadow: none !important; border: none !important; padding: 0 !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold tracking-wider text-indigo-400">HRBAK</h1>
+                <p class="text-slate-400 text-sm mt-1">Σύστημα Διαχείρισης Προσωπικού</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Επιλογή Καταστήματος / Ρόλου</label>
+                    <select id="loginStore" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <option value="superadmin">Super Admin (Κεντρική Διοίκηση)</option>
+                        <option value="STOA AGORA">STOA AGORA</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Κωδικός Πρόσβασης</label>
+                    <input type="password" id="loginPass" required placeholder="Εισάγετε κωδικό..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 rounded-lg transition-all shadow-lg shadow-indigo-600/30">
+                    Σύνδεση
+                </button>
+            </form>
+            <div id="loginError" class="mt-4 text-center text-rose-400 text-sm hidden">Λανθασμένος κωδικός πρόσβασης!</div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="appContainer" class="hidden min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center no-print">
+            <div class="flex items-center gap-4">
+                <h2 class="text-xl font-bold text-indigo-400">HRBAK</h2>
+                <span id="userBadge" class="bg-slate-700 text-slate-300 text-xs px-3 py-1 rounded-full font-medium"></span>
+            </div>
+            <button onclick="logout()" class="text-sm bg-rose-500/10 text-rose-400 border border-rose-500/20 px-4 py-2 rounded-lg hover:bg-rose-500/20 transition-all">
+                Αποσύνδεση
+            </button>
+        </header>
+
+        <!-- Content Area -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-8">
+            
+            <!-- SUPER ADMIN DASHBOARD -->
+            <div id="superAdminView" class="hidden space-y-8">
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
+                    <h3 class="text-lg font-semibold text-indigo-300 mb-4">Διαχείριση Καταστημάτων & Χρηστών</h3>
+                    <form onsubmit="addNewStoreUser(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" id="newStoreName" required placeholder="Όνομα Καταστήματος (π.χ. KRONOS)" class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm">
+                        <input type="password" id="newStorePass" required placeholder="Κωδικός Πρόσβασης" class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 font-medium py-2.5 rounded-lg text-sm transition-all">Προσθήκη / Δημιουργία</button>
+                    </form>
+                </div>
+
+                <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-xl">
+                    <h3 class="text-lg font-semibold text-indigo-300 mb-4">Συνολική Λίστα Εργαζομένων Όλων των Καταστημάτων</h3>
+                    <div id="superAdminList" class="overflow-x-auto"></div>
+                </div>
+            </div>
+
+            <!-- STORE VIEW (STOA AGORA κλπ) -->
+            <div id="storeView" class="hidden space-y-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
+                    <h3 id="storeTitle" class="text-2xl font-bold">Κατάστημα</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="showInviteModal()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2.5 rounded-lg font-medium text-sm transition-all shadow-lg shadow-sky-600/30">
+                            📱 QR Code & Link Πρόσληψης
+                        </button>
+                        <button onclick="switchView('form')" class="bg-indigo-600 hover:bg-indigo-500 px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow-lg shadow-indigo-600/30">
+                            + Νέα Πρόσληψη (Χειροκίνητα)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Employees Table per store -->
+                <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl">
+                    <div class="p-6 border-b border-slate-700">
+                        <h4 class="font-semibold text-slate-200">Εργαζόμενοι Καταστήματος</h4>
+                    </div>
+                    <div id="storeEmployeesList" class="overflow-x-auto"></div>
+                </div>
+            </div>
+
+            <!-- REGISTRATION FORM VIEW (Public / Employee view or Admin) -->
+            <div id="formView" class="hidden space-y-6">
+                <div class="flex justify-between items-center no-print">
+                    <h3 id="formTitleHeader" class="text-xl font-bold text-indigo-300">Φόρμα Καταχώρησης Στοιχείων Πρόσληψης</h3>
+                    <button onclick="checkBackFromForm()" class="text-sm bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg">← Επιστροφή</button>
+                </div>
+
+                <form id="employeeForm" onsubmit="saveEmployee(event)" class="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl space-y-8">
+                    <div id="storeSelectionContainer" class="hidden mb-4">
+                        <label class="block text-sm font-medium text-indigo-400 mb-2">Κατάστημα Πρόσληψης</label>
+                        <select id="publicStoreSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sm"></select>
+                    </div>
+
+                    <!-- 1. Προσωπικά Στοιχεία -->
+                    <div>
+                        <h4 class="text-indigo-400 font-semibold mb-4 border-b border-slate-700 pb-2">1. Στοιχεία Εργαζομένου</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-xs text-slate-400 mb-1">Όνομα</label><input type="text" name="onoma" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Επώνυμο</label><input type="text" name="eponymo" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Πατρώνυμο</label><input type="text" name="patros" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Μητρώνυμο</label><input type="text" name="mitros" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Σύζυγος</label><input type="text" name="syzygos" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Οικογενειακή Κατάσταση</label><select name="oikogeniaki" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"><option>Άγαμος/η</option><option>Έγγαμος/η</option><option>Διαζυγ/νος-η</option></select></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Αριθμός Παιδιών</label><input type="number" name="paidia" value="0" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Υπηκοότητα</label><input type="text" name="ypikootita" value="Ελληνική" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Αριθμός Ταυτότητας / Διαβατηρίου</label><input type="text" name="taftotita" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Ημερομηνία Έκδοσης</label><input type="date" name="ekdosis" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Τόπος Έκδοσης</label><input type="text" name="toposekdosis" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">ΑΦΜ</label><input type="text" name="afm" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">ΔΟΥ</label><input type="text" name="doy" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">ΑΜΚΑ</label><input type="text" name="amka" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Αριθμός Μητρώου ΙΚΑ / ΕΦΚΑ</label><input type="text" name="ama" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Ημερομηνία Γέννησης</label><input type="date" name="gennisi" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Τόπος Γέννησης</label><input type="text" name="toposgennisis" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Email</label><input type="email" name="email" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Τηλέφωνο</label><input type="tel" name="tilefono" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div class="md:col-span-2"><label class="block text-xs text-slate-400 mb-1">Διεύθυνση Κατοικίας</label><input type="text" name="dieythynsi" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Στοιχεία Σύμβασης & Καταστήματος -->
+                    <div>
+                        <h4 class="text-indigo-400 font-semibold mb-4 border-b border-slate-700 pb-2">2. Στοιχεία Σύμβασης</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div><label class="block text-xs text-slate-400 mb-1">Ειδικότητα</label><input type="text" name="eidikotita" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm" placeholder="π.χ. Barista, Σερβιτόρος"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Μισθός / Ημερομίσθιο (€)</label><input type="text" name="misthos" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Τράπεζα</label><input type="text" name="trapeza" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm" placeholder="π.χ. Εθνική"></div>
+                            <div class="md:col-span-2"><label class="block text-xs text-slate-400 mb-1">IBAN</label><input type="text" name="iban" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm" placeholder="GR..."></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Ημερομηνία Πρόσληψης</label><input type="date" name="asfalisi" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm"></div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Επισυναπτόμενα Αρχεία -->
+                    <div>
+                        <h4 class="text-indigo-400 font-semibold mb-4 border-b border-slate-700 pb-2">3. Επισυναπτόμενα Αρχεία</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-xs text-slate-400 mb-1">Ταυτότητα / Διαβατήριο</label><input type="file" id="fileTaftotita" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white"></div>
+                            <div><label class="block text-xs text-slate-400 mb-1">Πιστοποιητικό Υγείας Εστίασης (5ετές)</label><input type="file" id="fileYgeias" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-4 pt-4">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-emerald-600/30">
+                            Υποβολή Στοιχείων Πρόσληψης
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CARD VIEW -->
+            <div id="cardView" class="hidden space-y-6">
+                <div class="flex justify-between items-center no-print">
+                    <button onclick="switchView('store')" class="text-sm bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-lg">← Πίσω στη Λίστα</button>
+                    <div class="flex gap-3">
+                        <button onclick="sendEmail()" class="bg-sky-600 hover:bg-sky-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md">✉️ Αποστολή με Email</button>
+                        <button onclick="exportToExcelSingle()" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md">📊 Εξαγωγή σε Excel</button>
+                        <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md">🖨️ Εκτύπωση A4</button>
+                    </div>
+                </div>
+
+                <div id="printableCard" class="bg-white text-slate-900 p-8 rounded-2xl shadow-2xl max-w-3xl mx-auto print-area border border-slate-200">
+                    <div class="text-center border-b pb-4 mb-6">
+                        <h2 class="text-2xl font-bold text-slate-800">ΚΑΡΤΕΛΑ ΕΡΓΑΖΟΜΕΝΟΥ - <span id="cardStoreName"></span></h2>
+                        <p class="text-xs text-slate-500 mt-1">HRBAK Personal Management System</p>
+                    </div>
+                    <div id="cardDetailsGrid" class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm"></div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL ΓΙΑ QR CODE & LINK -->
+    <div id="inviteModal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 max-w-md w-full shadow-2xl text-center space-y-4">
+            <h3 class="text-xl font-bold text-indigo-300">QR Code & Link Υποψηφίου</h3>
+            <p class="text-xs text-slate-400">Δείξτε αυτό το QR code στον ενδιαφερόμενο ή αντιγράφητε το σύνδεσμο για να συμπληρώσει τα στοιχεία του απευθείας από το κινητό του.</p>
+            
+            <div id="qrcodeContainer" class="bg-white p-4 rounded-xl inline-block mx-auto flex justify-center"></div>
+
+            <div>
+                <input type="text" id="inviteLinkInput" readonly class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-300 text-center mb-2">
+                <button onclick="copyInviteLink()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 rounded-lg text-sm font-medium transition-all">Αντιγραφές Συνδέσμου</button>
+            </div>
+
+            <button onclick="closeInviteModal()" class="w-full bg-slate-700 hover:bg-slate-600 py-2 rounded-lg text-sm text-slate-300">Κλείσιμο</button>
+        </div>
+    </div>
+
+    <script>
+        let storesDB = JSON.parse(localStorage.getItem('hrbak_stores')) || {
+            "STOA AGORA": "1234"
+        };
+
+        let employeesDB = JSON.parse(localStorage.getItem('hrbak_employees')) || [];
+        let currentUser = null;
+        let currentRole = null;
+        let activeEmployeeId = null;
+
+        // Check if URL has ?register=STORE_NAME to open public form directly
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const regStore = urlParams.get('register');
+            if (regStore) {
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('appContainer').classList.remove('hidden');
+                document.getElementById('formView').classList.remove('hidden');
+                document.getElementById('formTitleHeader').innerText = `Φόρμα Πρόσληψης - ${regStore}`;
+                document.getElementById('storeSelectionContainer').classList.add('hidden');
+                currentUser = regStore;
+                currentRole = 'public';
+            }
+        });
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const store = document.getElementById('loginStore').value;
+            const pass = document.getElementById('loginPass').value;
+            const errorEl = document.getElementById('loginError');
+
+            if (store === 'superadmin') {
+                if (pass === 'admin123') {
+                    currentRole = 'superadmin';
+                    currentUser = 'Super Admin';
+                    initApp();
+                } else {
+                    errorEl.classList.remove('hidden');
+                }
+            } else {
+                if (storesDB[store] && storesDB[store] === pass) {
+                    currentRole = 'store';
+                    currentUser = store;
+                    initApp();
+                } else {
+                    errorEl.classList.add('hidden');
+                    errorEl.classList.remove('hidden');
+                }
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            currentRole = null;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginPass').value = '';
+            document.getElementById('loginError').classList.add('hidden');
+        }
+
+        function initApp() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+            document.getElementById('userBadge').innerText = currentRole === 'superadmin' ? 'Super Admin' : `Κατάστημα: ${currentUser}`;
+
+            if (currentRole === 'superadmin') {
+                document.getElementById('superAdminView').classList.remove('hidden');
+                document.getElementById('storeView').classList.add('hidden');
+                renderSuperAdminList();
+            } else {
+                document.getElementById('superAdminView').classList.add('hidden');
+                document.getElementById('storeView').classList.remove('hidden');
+                document.getElementById('storeTitle').innerText = `Κατάστημα: ${currentUser}`;
+                renderStoreEmployees();
+            }
+        }
+
+        function switchView(view) {
+            document.getElementById('superAdminView').classList.add('hidden');
+            document.getElementById('storeView').classList.add('hidden');
+            document.getElementById('formView').classList.add('hidden');
+            document.getElementById('cardView').classList.add('hidden');
+
+            if (view === 'store') {
+                if (currentRole === 'superadmin') initApp();
+                else document.getElementById('storeView').classList.remove('hidden'), renderStoreEmployees();
+            } else if (view === 'form') {
+                document.getElementById('employeeForm').reset();
+                document.getElementById('formView').classList.remove('hidden');
+                document.getElementById('formTitleHeader').innerText = `Νέα Πρόσληψη - ${currentUser}`;
+            } else if (view === 'card') {
+                document.getElementById('cardView').classList.remove('hidden');
+            }
+        }
+
+        function checkBackFromForm() {
+            if (currentRole === 'public') {
+                alert('Τα στοιχεία σας υποβλήθηκαν με επιτυχία!');
+                location.reload();
+            } else {
+                switchView('store');
+            }
+        }
+
+        function addNewStoreUser(e) {
+            e.preventDefault();
+            const name = document.getElementById('newStoreName').value.trim();
+            const pass = document.getElementById('newStorePass').value;
+            if(name && pass) {
+                storesDB[name] = pass;
+                localStorage.setItem('hrbak_stores', JSON.stringify(storesDB));
+                alert(`Το κατάστημα "${name}" δημιουργήθηκε επιτυχώς!`);
+                document.getElementById('newStoreName').value = '';
+                document.getElementById('newStorePass').value = '';
+                
+                const select = document.getElementById('loginStore');
+                let exists = false;
+                for(let opt of select.options) { if(opt.value === name) exists = true; }
+                if(!exists) {
+                    let opt = document.createElement('option');
+                    opt.value = name;
+                    opt.text = name;
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        function saveEmployee(e) {
+            e.preventDefault();
+            const form = document.getElementById('employeeForm');
+            const formData = new FormData(form);
+            const emp = {
+                id: 'EMP_' + Date.now(),
+                store: currentUser,
+                dateAdded: new Date().toLocaleDateString('el-GR')
+            };
+            formData.forEach((value, key) => { emp[key] = value; });
+
+            employeesDB.push(emp);
+            localStorage.setItem('hrbak_employees', JSON.stringify(employeesDB));
+            alert('Ο εργαζόμενος αποθηκεύτηκε επιτυχώς!');
+            if (currentRole === 'public') {
+                location.reload();
+            } else {
+                switchView('store');
+            }
+        }
+
+        function renderStoreEmployees() {
+            const container = document.getElementById('storeEmployeesList');
+            const storeEmps = employeesDB.filter(emp => emp.store === currentUser);
+            
+            if (storeEmps.length === 0) {
+                container.innerHTML = `<p class="p-6 text-slate-400 text-sm">Δεν υπάρχουν καταχωρημένοι εργαζόμενοι για αυτό το κατάστημα.</p>`;
+                return;
+            }
+
+            let html = `<table class="w-full text-left border-collapse text-sm">
+                <tr class="border-b border-slate-700 bg-slate-900/50 text-slate-400">
+                    <th class="p-4">Ονοματεπώνυμο</th>
+                    <th class="p-4">Ειδικότητα</th>
+                    <th class="p-4">Τηλέφωνο</th>
+                    <th class="p-4">ΑΦΜ</th>
+                    <th class="p-4 text-right">Ενέργειες</th>
+                </tr>`;
+
+            storeEmps.forEach(emp => {
+                html += `<tr class="border-b border-slate-700/55 hover:bg-slate-700/20">
+                    <td class="p-4 font-medium">${emp.onoma} ${emp.eponymo}</td>
+                    <td class="p-4 text-slate-300">${emp.eidikotita}</td>
+                    <td class="p-4 text-slate-300">${emp.tilefono || '-'}</td>
+                    <td class="p-4 text-slate-300">${emp.afm}</td>
+                    <td class="p-4 text-right space-x-2">
+                        <button onclick="viewCard('${emp.id}')" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 px-3 py-1.5 rounded-lg text-xs font-medium">Καρτέλα</button>
+                        <button onclick="deleteEmp('${emp.id}')" class="bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-medium">Διαγραφή</button>
+                    </td>
+                </tr>`;
+            });
+            html += `</table>`;
+            container.innerHTML = html;
+        }
+
+        function renderSuperAdminList() {
+            const container = document.getElementById('superAdminList');
+            if (employeesDB.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 text-sm">Δεν υπάρχουν καταχωρημένοι εργαζόμενοι στο σύστημα.</p>`;
+                return;
+            }
+
+            let html = `<table class="w-full text-left border-collapse text-sm">
+                <tr class="border-b border-slate-700 bg-slate-900/50 text-slate-400">
+                    <th class="p-4">Κατάστημα</th>
+                    <th class="p-4">Ονοματεπώνυμο</th>
+                    <th class="p-4">Ειδικότητα</th>
+                    <th class="p-4">ΑΦΜ</th>
+                    <th class="p-4 text-right">Ενέργειες</th>
+                </tr>`;
+
+            employeesDB.forEach(emp => {
+                html += `<tr class="border-b border-slate-700/55 hover:bg-slate-700/20">
+                    <td class="p-4 font-semibold text-indigo-300">${emp.store}</td>
+                    <td class="p-4 font-medium">${emp.onoma} ${emp.eponymo}</td>
+                    <td class="p-4 text-slate-300">${emp.eidikotita}</td>
+                    <td class="p-4 text-slate-300">${emp.afm}</td>
+                    <td class="p-4 text-right">
+                        <button onclick="viewCard('${emp.id}')" class="bg-indigo-600/20 text-indigo-400 hover:bg-indigo-600/30 px-3 py-1.5 rounded-lg text-xs font-medium">Καρτέλα</button>
+                    </td>
+                </tr>`;
+            });
+            html += `</table>`;
+            container.innerHTML = html;
+        }
+
+        function viewCard(id) {
+            activeEmployeeId = id;
+            const emp = employeesDB.find(e => e.id === id);
+            if (!emp) return;
+
+            document.getElementById('cardStoreName').innerText = emp.store;
+            
+            const labels = {
+                onoma: 'Όνομα', eponymo: 'Επώνυμο', patros: 'Πατρώνυμο', mitros: 'Μητρώνυμο',
+                syzygos: 'Σύζυγος', oikogeniaki: 'Οικογενειακή Κατάσταση', paidia: 'Παιδιά',
+                ypikootita: 'Υπηκοότητα', taftotita: 'Αριθμός Ταυτότητας', ekdosis: 'Ημ. Έκδοσης',
+                toposekdosis: 'Τόπος Έκδοσης', afm: 'ΑΦΜ', doy: 'ΔΟΥ', amka: 'ΑΜΚΑ',
+                ama: 'ΑΜΚΑ/ΙΚΑ', gennisi: 'Ημ. Γέννησης', toposgennisis: 'Τόπος Γέννησης',
+                email: 'Email', tilefono: 'Τηλέφωνο', dieythynsi: 'Διεύθυνση',
+                eidikotita: 'Ειδικότητα', misthos: 'Μισθός', trapeza: 'Τράπεζα',
+                iban: 'IBAN', asfalisi: 'Ημ. Πρόσληψης'
+            };
+
+            let gridHtml = '';
+            for (let key in labels) {
+                if (emp[key]) {
+                    gridHtml += `<div><span class="text-slate-500 block text-xs">${labels[key]}</span><strong class="text-slate-800">${emp[key]}</strong></div>`;
+                }
+            }
+            document.getElementById('cardDetailsGrid').innerHTML = gridHtml;
+            switchView('card');
+        }
+
+        function deleteEmp(id) {
+            if (confirm('Είστε σίγουρος για τη διαγραφή του εργαζομένου;')) {
+                employeesDB = employeesDB.filter(e => e.id !== id);
+                localStorage.setItem('hrbak_employees', JSON.stringify(employeesDB));
+                renderStoreEmployees();
+            }
+        }
+
+        // --- QR CODE & INVITE LINK ---
+        function showInviteModal() {
+            const baseUrl = window.location.href.split('?')[0];
+            const inviteUrl = `${baseUrl}?register=${encodeURIComponent(currentUser)}`;
+            
+            document.getElementById('inviteLinkInput').value = inviteUrl;
+            
+            const qrContainer = document.getElementById('qrcodeContainer');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: inviteUrl,
+                width: 180,
+                height: 180,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('inviteModal').classList.remove('hidden');
+        }
+
+        function closeInviteModal() {
+            document.getElementById('inviteModal').classList.add('hidden');
+        }
+
+        function copyInviteLink() {
+            const input = document.getElementById('inviteLinkInput');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value);
+            alert('Ο σύνδεσμος αντιγράφηκε στο πρόχειρο!');
+        }
+
+        // --- ΕΞΑΓΩΓΗ ΣΕ EXCEL (CSV) ---
+        function exportToExcelSingle() {
+            const emp = employeesDB.find(e => e.id === activeEmployeeId);
+            if (!emp) return;
+
+            const headers = ["Κατάστημα", "Όνομα", "Επώνυμο", "Πατρώνυμο", "ΑΦΜ", "ΑΜΚΑ", "Ταυτότητα", "Ειδικότητα", "Μισθός", "IBAN", "Τηλέφωνο", "Email"];
+            const values = [
+                emp.store, emp.onoma, emp.eponymo, emp.patros, emp.afm, emp.amka, emp.taftotita, emp.eidikotita, emp.misthos, emp.iban, emp.tilefono, emp.email
+            ];
+
+            let csvContent = "\uFEFF" + headers.join(";") + "\n" + values.map(v => `"${v || ''}"`).join(";");
+            let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = `Kartela_${emp.eponymo}_${emp.onoma}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // --- ΑΠΟΣΤΟΛΗ ΣΕ EMAIL ---
+        function sendEmail() {
+            const emp = employeesDB.find(e => e.id === activeEmployeeId);
+            if (!emp) return;
+
+            const subject = encodeURIComponent(`Στοιχεία Πρόσληψης - ${emp.onoma} ${emp.eponymo} (${emp.store})`);
+            let body = `ΣΤΟΙΧΕΙΑ ΕΡΓΑΖΟΜΕΝΟΥ\n\n`;
+            body += `Κατάστημα: ${emp.store}\n`;
+            body += `Ονοματεπώνυμο: ${emp.onoma} ${emp.eponymo}\n`;
+            body += `Πατρώνυμο: ${emp.patros || '-'}\n`;
+            body += `ΑΦΜ: ${emp.afm}\n`;
+            body += `ΑΜΚΑ: ${emp.amka}\n`;
+            body += `Ταυτότητα: ${emp.taftotita}\n`;
+            body += `Ειδικότητα: ${emp.eidikotita}\n`;
+            body += `Μισθός: ${emp.misthos}\n`;
+            body += `IBAN: ${emp.iban}\n`;
+            body += `Τηλέφωνο: ${emp.tilefono || '-'}\n`;
+            body += `Email: ${emp.email || '-'}\n`;
+
+            window.location.href = `mailto:${emp.email || ''}?subject=${subject}&body=${encodeURIComponent(body)}`;
+        }
+    </script>
+</body>
+</html>
