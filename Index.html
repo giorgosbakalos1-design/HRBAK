@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HRBAK - Διαχείριση Προσωπικού & Προσλήψεων</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <!-- LOGIN SCREEN -->
+    <div id="loginScreen" class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-slate-100">
+            <div class="text-center mb-8">
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">HRBAK System</span>
+                <h1 class="text-3xl font-bold text-slate-900 mt-2">Σύνδεση</h1>
+                <p class="text-sm text-slate-500 mt-1">Επιλέξτε ρόλο για πρόσβαση στην πλατφόρμα</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Ρόλος Χρήστη</label>
+                    <select id="userRole" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition">
+                        <option value="superadmin">Super Admin (Κεντρική Διαχείριση)</option>
+                        <option value="manager" selected>Υπεύθυνος Καταστήματος (STOA AGORA)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Κωδικός Πρόσβασης</label>
+                    <input type="password" id="loginPass" value="1234" class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition" placeholder="Εισάγετε κωδικό">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200">
+                    Είσοδος στο Σύστημα
+                </button>
+            </form>
+            <div class="mt-6 text-center text-xs text-slate-400">
+                HRBAK Multi-Store Platform &copy; 2026
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER (Hidden initially) -->
+    <div id="appContainer" class="hidden min-h-screen flex flex-col">
+        <!-- Top Navbar -->
+        <header class="bg-slate-900 text-white shadow-md no-print">
+            <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <span class="bg-indigo-500 text-white text-xs font-extrabold px-2.5 py-1 rounded tracking-wide">HRBAK</span>
+                    <h2 id="currentStoreTitle" class="text-lg font-semibold tracking-wide">STOA AGORA</h2>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="userInfoLabel" class="text-sm text-slate-300">Manager: Stoa Agora</span>
+                    <button onclick="logout()" class="bg-slate-800 hover:bg-red-600 text-slate-200 hover:text-white px-3 py-1.5 rounded-lg text-sm transition duration-150">
+                        Αποσύνδεση
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-grow max-w-7xl w-full mx-auto p-4 md:p-6">
+            
+            <!-- Dashboard Controls -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 no-print">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Μητρώο Προσωπικού & Προσλήψεων</h1>
+                    <p class="text-sm text-slate-500">Διαχείριση καρτελών εργαζομένων και δικαιολογητικών</p>
+                </div>
+                <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Νέα Καταχώρηση Πρόσληψης
+                </button>
+            </div>
+
+            <!-- Employee List Table -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden no-print">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <th class="p-4">Ονοματεπώνυμο</th>
+                                <th class="p-4">Ειδικότητα</th>
+                                <th class="p-4">Τηλέφωνο</th>
+                                <th class="p-4">ΑΦΜ</th>
+                                <th class="p-4">Μισθός / Ωράριο</th>
+                                <th class="p-4 text-right">Ενέργειες</th>
+                            </tr>
+                        </thead>
+                        <tbody id="employeeTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- EMPLOYEE MODAL / FORM -->
+    <div id="employeeModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden my-8">
+            <div class="p-6 bg-slate-900 text-white flex justify-between items-center no-print">
+                <h3 id="modalTitle" class="text-xl font-bold">Νέα Καρτέλα Πρόσληψης</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-2xl font-bold">&times;</button>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-grow space-y-8">
+                <form id="employeeForm" class="space-y-8">
+                    <input type="hidden" id="empId">
+
+                    <!-- SECTION A: Employee Details -->
+                    <div>
+                        <div class="border-b border-slate-200 pb-2 mb-4 flex items-center justify-between">
+                            <h4 class="text-base font-semibold text-indigo-600">Α. Στοιχεία Ενδιαφερόμενου (Συμπληρώνονται από τον εργαζόμενο)</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΟΝΟΜΑ *</label>
+                                <input type="text" id="f_onoma" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΕΠΩΝΥΜΟ *</label>
+                                <input type="text" id="f_eponymo" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΟΝΟΜΑ ΠΑΤΡΟΣ</label>
+                                <input type="text" id="f_patros" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΟΝΟΜΑ ΜΗΤΡΟΣ</label>
+                                <input type="text" id="f_mitros" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΟΝΟΜΑ ΣΥΖΥΓΟΥ</label>
+                                <input type="text" id="f_syzygos" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΟΙΚΟΓΕΝΕΙΑΚΗ ΚΑΤΑΣΤΑΣΗ</label>
+                                <select id="f_oikogeniaki" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="Άγαμος/η">Άγαμος/η</option>
+                                    <option value="Έγγαμος/η">Έγγαμος/η</option>
+                                    <option value="Διαζευγμένος/η">Διαζευγμένος/η</option>
+                                    <option value="Σε χηρεία">Σε χηρεία</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΠΑΙΔΙΑ ΓΙΑ ΕΚΠΤΩΣΗ Φ.Μ.Υ.</label>
+                                <input type="number" id="f_paidia" value="0" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΥΠΗΚΟΟΤΗΤΑ</label>
+                                <input type="text" id="f_ypikootita" value="Ελληνική" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΑΡ. ΤΑΥΤΟΤΗΤΑΣ / ΔΙΑΒΑΤΗΡΙΟΥ</label>
+                                <input type="text" id="f_taftotita" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΗΜ/ΝΙΑ ΕΚΔΟΣΗΣ</label>
+                                <input type="date" id="f_ekdosis" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΤΟΠΟΣ ΕΚΔΟΣΗΣ</label>
+                                <input type="text" id="f_toposekdosis" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΑΡ. ΚΑΡΤΑΣ ΑΛΛΟΔΑΠΟΥ</label>
+                                <input type="text" id="f_allodapou" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΗΜ/ΝΙΑ ΛΗΞΗΣ ΑΔΕΙΑΣ</label>
+                                <input type="date" id="f_lixisadeias" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΑΦΜ *</label>
+                                <input type="text" id="f_afm" required maxlength="9" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΕΦΟΡΙΑ - ΔΟΥ</label>
+                                <input type="text" id="f_doy" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΑΣΦΑΛΙΣΤΙΚΟΣ ΟΡΓΑΝΙΣΜΟΣ</label>
+                                <input type="text" id="f_foreas" value="ΕΦΚΑ" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΑΜΑ</label>
+                                <input type="text" id="f_ama" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΑΜΚΑ *</label>
+                                <input type="text" id="f_amka" required maxlength="11" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΗΜ/ΝΙΑ ΓΕΝΝΗΣΗΣ</label>
+                                <input type="date" id="f_gennisi" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΤΟΠΟΣ ΓΕΝΝΗΣΗΣ</label>
+                                <input type="text" id="f_toposgennisis" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">EMAIL</label>
+                                <input type="email" id="f_email" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΤΗΛΕΦΩΝΟ *</label>
+                                <input type="text" id="f_tilefono" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΔΙΕΥΘΥΝΣΗ</label>
+                                <input type="text" id="f_dieythynsi" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΠΡΩΤΗ ΦΟΡΑ ΜΙΣΘΩΤΟΣ</label>
+                                <select id="f_protifora" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                                    <option value="Όχι">Όχι</option>
+                                    <option value="Ναι">Ναι</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΗΜ/ΝΙΑ ΠΡΩΤΗΣ ΑΣΦΑΛΙΣΗΣ ΕΦΚΑ</label>
+                                <input type="date" id="f_asfalisi" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΠΡΟΥΠΗΡΕΣΙΑ ΣΤΗΝ ΕΙΔΙΚΟΤΗΤΑ</label>
+                                <input type="text" id="f_proupiresia" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="π.χ. 3 έτη">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΠΡΟΥΠΗΡΕΣΙΑ ΕΩΣ 14/02/2012</label>
+                                <input type="text" id="f_proup2012" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">Σ.Σ.Ε.</label>
+                                <input type="text" id="f_sse" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Συλλογική Σύμβαση">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΕΚΠΑΙΔΕΥΣΗ</label>
+                                <input type="text" id="f_ekpaideysi" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΤΡΑΠΕΖΑ</label>
+                                <input type="text" id="f_trapeza" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="π.χ. Πειραιώς">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-medium text-slate-600 mb-1">IBAN</label>
+                                <input type="text" id="f_iban" class="w-full px-3 py-2 border rounded-lg text-sm font-mono uppercase focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="GR...">
+                            </div>
+
+                            <!-- Attachments -->
+                            <div class="md:col-span-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 mt-2">
+                                <label class="block text-sm font-semibold text-indigo-900 mb-2">📁 Επισυναπτόμενα Δικαιολογητικά & Πιστοποιητικά</label>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                                    <div>
+                                        <span class="text-slate-600 block mb-1">Ταυτότητα / Διαβατήριο (Αρχείο):</span>
+                                        <input type="file" id="file_taftotita" class="w-full text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                    </div>
+                                    <div>
+                                        <span class="text-slate-600 block mb-1">🏥 Πιστοποιητικό Υγείας Εστίασης (5ετές):</span>
+                                        <input type="file" id="file_ygeias" class="w-full text-slate-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION B: Manager Details -->
+                    <div>
+                        <div class="border-b border-slate-200 pb-2 mb-4">
+                            <h4 class="text-base font-semibold text-emerald-600">Β. Στοιχεία Σύμβασης (Συμπληρώνονται από τον Υπεύθυνο Καταστήματος)</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΕΙΔΙΚΟΤΗΤΑ *</label>
+                                <input type="text" id="m_eidikotita" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="π.χ. Barista / Σερβιτόρος">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΜΙΣΘΟΣ (€) *</label>
+                                <input type="text" id="m_misthos" required class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="π.χ. 950€ μικτά">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΗΜΕΡΕΣ ΕΡΓΑΣΙΑΣ</label>
+                                <input type="text" id="m_imeres" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="π.χ. 5ήμερο">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-600 mb-1">ΩΡΑΡΙΟ ΕΡΓΑΣΙΑΣ</label>
+                                <input type="text" id="m_orario" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="π.χ. 08:00 - 16:00">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-4 bg-slate-100 border-t border-slate-200 flex justify-end space-x-3 no-print">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Ακύρωση</button>
+                <button type="button" onclick="saveEmployee()" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-semibold shadow">Αποθήκευση Καρτέλας</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // Dummy Database for Stoa Agora
+        let employees = [
+            {
+                id: 1,
+                store: "STOA AGORA",
+                onoma: "Νίκος",
+                eponymo: "Παπαδόπουλος",
+                patros: "Γεώργιος",
+                mitros: "Μαρία",
+                syzygos: "-",
+                oikogeniaki: "Άγαμος/η",
+                paidia: "0",
+                ypikootita: "Ελληνική",
+                taftotita: "AB123456",
+                ekdosis: "2018-05-12",
+                toposekdosis: "ΑΤ Αθηνών",
+                allodapou: "",
+                lixisadeias: "",
+                afm: "123456789",
+                doy: "Α' Αθηνών",
+                foreas: "ΕΦΚΑ",
+                ama: "12345678901",
+                amka: "12345678901",
+                gennisi: "1995-03-20",
+                toposgennisis: "Αθήνα",
+                email: "nikos@example.com",
+                tilefono: "6912345678",
+                dieythynsi: "Πανεπιστημίου 10, Αθήνα",
+                protifora: "Όχι",
+                asfalisi: "2015-06-01",
+                proupiresia: "5 έτη",
+                proup2012: "0",
+                sse: "Επισιτιστικών",
+                ekpaideysi: "Λύκειο",
+                trapeza: "Πειραιώς",
+                iban: "GR1201720000000001234567890",
+                eidikotita: "Barista",
+                misthos: "950€",
+                imeres: "5ήμερο",
+                orario: "08:00 - 16:00"
+            }
+        ];
+
+        // Login Handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const role = document.getElementById('userRole').value;
+            const pass = document.getElementById('loginPass').value;
+
+            if (pass !== "1234") {
+                alert("Λάθος κωδικός! (Δοκιμάστε: 1234)");
+                return;
+            }
+
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+
+            if(role === 'superadmin') {
+                document.getElementById('currentStoreTitle').innerText = "HRBAK Super Admin (Όλα τα Καταστήματα)";
+                document.getElementById('userInfoLabel').innerText = "Super Admin: Γιώργος";
+            } else {
+                document.getElementById('currentStoreTitle').innerText = "STOA AGORA";
+                document.getElementById('userInfoLabel').innerText = "Manager: Stoa Agora";
+            }
+            renderTable();
+        });
+
+        function logout() {
+            document.getElementById('appContainer').classList.add('hidden');
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('employeeTableBody');
+            tbody.innerHTML = "";
+
+            if(employees.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Δεν υπάρχουν καταχωρημένοι εργαζόμενοι.</td></tr>`;
+                return;
+            }
+
+            employees.forEach(emp => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 font-medium text-slate-900">${emp.eponymo} ${emp.onoma}</td>
+                        <td class="p-4 text-slate-600"><span class="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-md text-xs font-semibold">${emp.eidikotita}</span></td>
+                        <td class="p-4 text-slate-600">${emp.tilefono}</td>
+                        <td class="p-4 text-slate-600">${emp.afm}</td>
+                        <td class="p-4 text-slate-600">${emp.misthos} (${emp.orario})</td>
+                        <td class="p-4 text-right space-x-2">
+                            <button onclick="editEmployee(${emp.id})" class="text-indigo-600 hover:text-indigo-900 font-medium text-xs bg-indigo-50 px-3 py-1.5 rounded-lg">Επεξεργασία</button>
+                            <button onclick="printCard(${emp.id})" class="text-emerald-600 hover:text-emerald-900 font-medium text-xs bg-emerald-50 px-3 py-1.5 rounded-lg">Εκτύπωση / PDF</button>
+                            <button onclick="exportExcel(${emp.id})" class="text-amber-600 hover:text-amber-900 font-medium text-xs bg-amber-50 px-3 py-1.5 rounded-lg">Excel</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openModal(id = null) {
+            document.getElementById('employeeModal').classList.remove('hidden');
+            if(id) {
+                document.getElementById('modalTitle').innerText = "Επεξεργασία Καρτέλας Εργαζομένου";
+                const emp = employees.find(e => e.id === id);
+                document.getElementById('empId').value = emp.id;
+                document.getElementById('f_onoma').value = emp.onoma;
+                document.getElementById('f_eponymo').value = emp.eponymo;
+                document.getElementById('f_patros').value = emp.patros;
+                document.getElementById('f_mitros').value = emp.mitros;
+                document.getElementById('f_syzygos').value = emp.syzygos;
+                document.getElementById('f_oikogeniaki').value = emp.oikogeniaki;
+                document.getElementById('f_paidia').value = emp.paidia;
+                document.getElementById('f_ypikootita').value = emp.ypikootita;
+                document.getElementById('f_taftotita').value = emp.taftotita;
+                document.getElementById('f_ekdosis').value = emp.ekdosis;
+                document.getElementById('f_toposekdosis').value = emp.toposekdosis;
+                document.getElementById('f_allodapou').value = emp.allodapou;
+                document.getElementById('f_lixisadeias').value = emp.lixisadeias;
+                document.getElementById('f_afm').value = emp.afm;
+                document.getElementById('f_doy').value = emp.doy;
+                document.getElementById('f_foreas').value = emp.foreas;
+                document.getElementById('f_ama').value = emp.ama;
+                document.getElementById('f_amka').value = emp.amka;
+                document.getElementById('f_gennisi').value = emp.gennisi;
+                document.getElementById('f_toposgennisis').value = emp.toposgennisis;
+                document.getElementById('f_email').value = emp.email;
+                document.getElementById('f_tilefono').value = emp.tilefono;
+                document.getElementById('f_dieythynsi').value = emp.dieythynsi;
+                document.getElementById('f_protifora').value = emp.protifora;
+                document.getElementById('f_asfalisi').value = emp.asfalisi;
+                document.getElementById('f_proupiresia').value = emp.proupiresia;
+                document.getElementById('f_proup2012').value = emp.proup2012;
+                document.getElementById('f_sse').value = emp.sse;
+                document.getElementById('f_ekpaideysi').value = emp.ekpaideysi;
+                document.getElementById('f_trapeza').value = emp.trapeza;
+                document.getElementById('f_iban').value = emp.iban;
+                document.getElementById('m_eidikotita').value = emp.eidikotita;
+                document.getElementById('m_misthos').value = emp.misthos;
+                document.getElementById('m_imeres').value = emp.imeres;
+                document.getElementById('m_orario').value = emp.orario;
+            } else {
+                document.getElementById('modalTitle').innerText = "Νέα Καρτέλα Πρόσληψης - STOA AGORA";
+                document.getElementById('employeeForm').reset();
+                document.getElementById('empId').value = "";
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('employeeModal').classList.add('hidden');
+        }
+
+        function saveEmployee() {
+            const id = document.getElementById('empId').value;
+            const data = {
+                id: id ? parseInt(id) : Date.now(),
+                store: "STOA AGORA",
+                onoma: document.getElementById('f_onoma').value,
+                eponymo: document.getElementById('f_eponymo').value,
+                patros: document.getElementById('f_patros').value,
+                mitros: document.getElementById('f_mitros').value,
+                syzygos: document.getElementById('f_syzygos').value,
+                oikogeniaki: document.getElementById('f_oikogeniaki').value,
+                paidia: document.getElementById('f_paidia').value,
+                ypikootita: document.getElementById('f_ypikootita').value,
+                taftotita: document.getElementById('f_taftotita').value,
+                ekdosis: document.getElementById('f_ekdosis').value,
+                toposekdosis: document.getElementById('f_toposekdosis').value,
+                allodapou: document.getElementById('f_allodapou').value,
+                lixisadeias: document.getElementById('f_lixisadeias').value,
+                afm: document.getElementById('f_afm').value,
+                doy: document.getElementById('f_doy').value,
+                foreas: document.getElementById('f_foreas').value,
+                ama: document.getElementById('f_ama').value,
+                amka: document.getElementById('f_amka').value,
+                gennisi: document.getElementById('f_gennisi').value,
+                toposgennisis: document.getElementById('f_toposgennisis').value,
+                email: document.getElementById('f_email').value,
+                tilefono: document.getElementById('f_tilefono').value,
+                dieythynsi: document.getElementById('f_dieythynsi').value,
+                protifora: document.getElementById('f_protifora').value,
+                asfalisi: document.getElementById('f_asfalisi').value,
+                proupiresia: document.getElementById('f_proupiresia').value,
+                proup2012: document.getElementById('f_proup2012').value,
+                sse: document.getElementById('f_sse').value,
+                ekpaideysi: document.getElementById('f_ekpaideysi').value,
+                trapeza: document.getElementById('f_trapeza').value,
+                iban: document.getElementById('f_iban').value,
+                eidikotita: document.getElementById('m_eidikotita').value,
+                misthos: document.getElementById('m_misthos').value,
+                imeres: document.getElementById('m_imeres').value,
+                orario: document.getElementById('m_orario').value
+            };
+
+            if(!data.onoma || !data.eponymo || !data.afm || !data.amka || !data.eidikotita) {
+                alert("Παρακαλώ συμπληρώστε τα υποχρεωτικά πεδία (*)");
+                return;
+            }
+
+            if(id) {
+                const index = employees.findIndex(e => e.id === parseInt(id));
+                employees[index] = data;
+            } else {
+                employees.push(data);
+            }
+
+            closeModal();
+            renderTable();
+            alert("Η καρτέλα αποθηκεύτηκε επιτυχώς!");
+        }
+
+        function editEmployee(id) {
+            openModal(id);
+        }
+
+        function printCard(id) {
+            const emp = employees.find(e => e.id === id);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Καρτέλα Πρόσληψης - ${emp.eponymo} ${emp.onoma}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; font-size: 13px; color: #111; padding: 20px; }
+                        h2 { color: #333; border-bottom: 2px solid #333; padding-bottom: 5px; }
+                        h3 { color: #555; margin-top: 20px; border-bottom: 1px solid #ccc; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        td, th { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+                        th { background: #f4f4f4; }
+                    </style>
+                </head>
+                <body>
+                    <h2>HRBAK - ΚΑΡΤΕΛΑ ΠΡΟΣΛΗΨΗΣ (${emp.store})</h2>
+                    <h3>Α. Στοιχεία Εργαζομένου</h3>
+                    <table>
+                        <tr><th>Ονοματεπώνυμο</th><td>${emp.eponymo} ${emp.onoma}</td><th>Πατρώνυμο</th><td>${emp.patros}</td></tr>
+                        <tr><th>Μητρώνυμο</th><td>${emp.mitros}</td><th>Οικογ. Κατάσταση</th><td>${emp.oikogeniaki}</td></tr>
+                        <tr><th>Ημ. Γέννησης</th><td>${emp.gennisi}</td><th>Τόπος Γέννησης</th><td>${emp.toposgennisis}</td></tr>
+                        <tr><th>ΑΦΜ / ΔΟΥ</th><td>${emp.afm} (${emp.doy})</td><th>ΑΜΚΑ</th><td>${emp.amka}</td></tr>
+                        <tr><th>Τηλέφωνο</th><td>${emp.tilefono}</td><th>Email</th><td>${emp.email}</td></tr>
+                        <tr><th>Διεύθυνση</th><td colspan="3">${emp.dieythynsi}</td></tr>
+                        <tr><th>Τράπεζα / IBAN</th><td>${emp.trapeza}</td><td colspan="2">${emp.iban}</td></tr>
+                    </table>
+                    <h3>Β. Στοιχεία Σύμβασης (Κατάστημα)</h3>
+                    <table>
+                        <tr><th>Ειδικότητα</th><td>${emp.eidikotita}</td><th>Μισθός</th><td>${emp.misthos}</td></tr>
+                        <tr><th>Ημέρες Εργασίας</th><td>${emp.imeres}</td><th>Ωράριο</th><td>${emp.orario}</td></tr>
+                    </table>
+                    <br><br>
+                    <div style="display:flex; justify-content:space-between; margin-top:50px;">
+                        <div>Υπογραφή Εργαζομένου: .......................................</div>
+                        <div>Ο Υπεύθυνος Καταστήματος: .......................................</div>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function exportExcel(id) {
+            const emp = employees.find(e => e.id === id);
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "Πεδίο,Τιμή\n";
+            for (const [key, value] of Object.entries(emp)) {
+                csvContent += `"${key}","${value}"\n`;
+            }
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `kartela_${emp.eponymo}_${emp.onoma}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
