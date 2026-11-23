@@ -1,0 +1,1930 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bakshifts — Διαχείριση Βαρδιών</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #1e293b;
+      --accent: #d97706;
+      --accent-hover: #b45309;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+    }
+    .badge-beta {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.15s;
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    button:active:not(:disabled) { transform: scale(0.98); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-blue:hover:not(:disabled) { background: #1d4ed8; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover:not(:disabled) { background: #f8fafc; }
+    .btn-dark { background: rgba(255,255,255,0.12); color: #fff; }
+    .btn-dark:hover:not(:disabled) { background: rgba(255,255,255,0.22); }
+    .btn-danger { background: #fee2e2; color: var(--red); }
+    .btn-sm { padding: 5px 9px; font-size: 0.78rem; }
+
+    .container {
+      max-width: 1560px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #fff;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .week-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .week-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .alerts-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .alert-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      border-left: 4px solid;
+    }
+    .alert-ok { background: #f0fdf4; border-color: var(--green); color: #166534; }
+    .alert-warn { background: #fef2f2; border-color: var(--red); color: #991b1b; }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1180px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background: #f8fafc;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    th.sun-col, td.sun-col {
+      background: #fffbeb;
+    }
+    th.busy-day-col, td.busy-day-col {
+      background: #fff7ed;
+    }
+    th.peak-day-col, td.peak-day-col {
+      background: #fef2f2;
+    }
+    th.holiday-day-col, td.holiday-day-col {
+      background: #fdf2f8;
+    }
+
+    .day-header-top {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .day-load-pill {
+      font-size: 0.68rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+    .load-light { background: #f1f5f9; color: #475569; }
+    .load-busy { background: #ffedd5; color: #9a3412; }
+    .load-peak { background: #fee2e2; color: #991b1b; }
+    .load-holiday { background: #fce7f3; color: #9d174d; border: 1px solid #f9a8d4; }
+
+    .btn-flag-day {
+      font-size: 0.68rem;
+      padding: 3px 7px;
+      border-radius: 6px;
+      background: #fff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      font-weight: 700;
+    }
+    .btn-flag-day:hover {
+      background: #f1f5f9;
+    }
+    .btn-flag-day.flagged {
+      background: #db2777;
+      color: #fff;
+      border-color: #db2777;
+    }
+
+    td.emp-cell {
+      text-align: left;
+      min-width: 220px;
+      background: #fff;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+    }
+    .emp-name { font-weight: 700; font-size: 0.92rem; }
+    .emp-meta { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+    .tag-fixed {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+    .tag-leave-bal {
+      display: inline-block;
+      background: #ecfeff;
+      color: #155e75;
+      border: 1px solid #a5f3fc;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    .shift-cell {
+      cursor: pointer;
+      min-width: 128px;
+      transition: background 0.12s;
+      position: relative;
+    }
+    .shift-cell:hover { background: #f1f5f9; }
+    .shift-badge {
+      display: block;
+      padding: 6px 6px;
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .sh-coffee1 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .sh-coffee2 { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+    .sh-sandwich { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .sh-prep { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .sh-dough { background: #e0e7ff; color: #3730a3; border: 1px solid #a5b4fc; }
+    .sh-custom { background: #f3e8ff; color: #6b21a8; border: 1px solid #d8b4fe; }
+    .sh-off { background: #f1f5f9; color: #64748b; }
+    .sh-leave { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+    .sh-sick { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+    .lock-icon {
+      position: absolute;
+      top: 3px;
+      right: 4px;
+      font-size: 0.72rem;
+    }
+    .pdf-badge {
+      display: inline-block;
+      background: #1e293b;
+      color: #fff;
+      font-size: 0.67rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+      font-weight: 700;
+    }
+    .warn-dot {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 0.68rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+      gap: 14px;
+      align-items: start;
+    }
+    .field-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+    input[type="text"], input[type="number"], input[type="time"], input[type="date"], input[type="file"], select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: #fff;
+    }
+    .check-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 10px;
+      margin-top: 4px;
+    }
+    .check-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .check-item input { width: auto; margin: 0; }
+
+    .role-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    .role-pill button {
+      background: none;
+      padding: 0 2px;
+      font-size: 0.78rem;
+      color: var(--red);
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-y: auto;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 540px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.25);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal h3 { margin: 0 0 12px; font-size: 1.08rem; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .hidden { display: none !important; }
+
+    @media print {
+      header, .tabs, .no-print, .btn-flag-day { display: none !important; }
+      body { background: #fff; }
+      .card { border: none; box-shadow: none; padding: 0; }
+      .table-wrap { border: 1px solid #000; }
+      th, td { border: 1px solid #444; font-size: 11px; padding: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>☕ Bakshifts</h1>
+    <span class="badge-beta">v9 • Βάρδιες Πόστων & Σήμανση Αργίας/Φόρτου</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-dark" onclick="openAbsenceRangeModal()">🏖️ Χορήγηση Άδειας / Αναρρωτικής</button>
+    <button class="btn-dark" onclick="seedDemoData()">🧪 Φόρτωση Δοκιμαστικής Ομάδας</button>
+    <button class="btn-dark" onclick="window.print()">🖨️ Εκτύπωση / PDF</button>
+    <button class="btn-dark" onclick="resetAllData()">🗑️ Καθαρισμός</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-btn-schedule" onclick="switchTab('schedule')">📅 Εβδομαδιαίο Πρόγραμμα</button>
+    <button class="tab-btn" id="tab-btn-employees" onclick="switchTab('employees')">👥 Εργαζόμενοι, Ειδικότητες, Άδειες & Ρεπό</button>
+    <button class="tab-btn" id="tab-btn-rules" onclick="switchTab('rules')">⚙️ Πόστα & Κανόνες Καταστήματος</button>
+  </div>
+
+  <!-- TAB 1: SCHEDULE -->
+  <div id="tab-schedule">
+    <div class="card">
+      <div class="week-bar">
+        <div class="week-nav">
+          <button class="btn-outline btn-sm" onclick="changeWeek(-1)">◀ Προηγούμενη</button>
+          <span class="week-title" id="weekLabel">Εβδομάδα</span>
+          <button class="btn-outline btn-sm" onclick="changeWeek(1)">Επόμενη ▶</button>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-outline" id="undoBtn" onclick="undoLastAction()" disabled title="Αναίρεση τελευταίας αλλαγής">↩️ Αναίρεση</button>
+          <button class="btn-outline" onclick="openAbsenceRangeModal()">🏖️ Χορήγηση Άδειας / Αναρρωτικής</button>
+          <button class="btn-outline" onclick="copyPreviousWeek()">📋 Αντιγραφή Προηγούμενης</button>
+          <button class="btn-accent" onclick="runShuffle()">🎲 Shuffle Εβδομάδας</button>
+        </div>
+      </div>
+
+      <div class="alerts-box" id="alertsBox"></div>
+    </div>
+
+    <div class="card" style="padding:10px;">
+      <div class="table-wrap">
+        <table id="scheduleTable"></table>
+      </div>
+      <div style="margin-top:10px; font-size:0.8rem; color:var(--muted); display:flex; flex-wrap:wrap; gap:14px;">
+        <span>🎉 <b>Κουμπί πάνω από μέρα:</b> Σημαίνει μέρα ως <b>Αργία / Έκτακτος Φόρτος</b> ώστε να αντιμετωπίζεται ως απαιτητική στο Shuffle</span>
+        <span>💡 <b>Κλικ σε κελί:</b> Μικροαλλαγή βάρδιας, έναρξη με αυτόματη λήξη (&amp; ελεύθερη επεξεργασία για υπερωρίες), άδεια/αναρρωτική ή 🔒</span>
+        <span>↩️ <b>Αναίρεση:</b> Επιστρέφει άμεσα στην προηγούμενη κατάσταση</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px; font-size:1rem;">📊 Έλεγχος Κάλυψης Βαρδιών ανά Ημέρα (12 θέσεις / ημέρα)</h3>
+      <div class="table-wrap">
+        <table id="coverageTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: EMPLOYEES, ROLES, LEAVES -->
+  <div id="tab-employees" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 10px; font-size:1.05rem;">🏷️ Διαχείριση Ειδικοτήτων</h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; max-width:520px;">
+        <input type="text" id="newRoleInput" placeholder="Νέα ειδικότητα (π.χ. Ζυμωτής, Διανομέας, Service)" style="flex:1; min-width:220px;" />
+        <button type="button" class="btn-blue" onclick="addNewRole()">+ Προσθήκη Ειδικότητας</button>
+      </div>
+      <div class="role-pills" id="rolesListPills"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 12px; font-size:1.05rem;">➕ Προσθήκη Εργαζομένου</h3>
+      <form id="empForm" class="form-grid" autocomplete="off" onsubmit="addEmployee(event)">
+        <div class="field-box">
+          <label>Ονοματεπώνυμο</label>
+          <input type="text" id="empName" required placeholder="π.χ. Νίκος Παπαδόπουλος" />
+          <div style="margin-top:8px;">
+            <label style="font-size:0.74rem; color:var(--muted);">Δικαιούμενες Μέρες Άδειας</label>
+            <input type="number" id="empLeaveQuota" min="0" max="60" value="20" required />
+          </div>
+        </div>
+
+        <div class="field-box">
+          <label>Βασική Ειδικότητα</label>
+          <select id="empRole" required></select>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.74rem; color:var(--muted);">Επιπλέον Δυνατότητες (Πολυ-ειδικότητα)</label>
+            <div class="check-group" id="empExtraRolesGroup"></div>
+          </div>
+        </div>
+
+        <div class="field-box">
+          <label>Ανοιχτή Σύμβαση (Μέρες & Ώρες)</label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div>
+              <label style="font-size:0.72rem; color:var(--muted);">Μέρες / Εβδ. (1–6)</label>
+              <input type="number" id="empDays" min="1" max="6" value="5" required />
+            </div>
+            <div>
+              <label style="font-size:0.72rem; color:var(--muted);">Ώρες / Βάρδια</label>
+              <input type="number" id="empShiftHours" min="1" max="12" step="0.5" value="8" required />
+            </div>
+          </div>
+        </div>
+
+        <div class="field-box">
+          <label>Στάνταρ Ρεπό (2, 3 ή 4 μέρες)</label>
+          <div class="check-group" id="empFixedOffGroup">
+            <label class="check-item"><input type="checkbox" value="0" /> Δευ</label>
+            <label class="check-item"><input type="checkbox" value="1" /> Τρι</label>
+            <label class="check-item"><input type="checkbox" value="2" /> Τετ</label>
+            <label class="check-item"><input type="checkbox" value="3" /> Πεμ</label>
+            <label class="check-item"><input type="checkbox" value="4" /> Παρ</label>
+            <label class="check-item"><input type="checkbox" value="5" /> Σαβ</label>
+            <label class="check-item"><input type="checkbox" value="6" /> Κυρ</label>
+          </div>
+        </div>
+
+        <div class="field-box">
+          <label>Στάνταρ Ωράριο (Κλειδωμένο στο Shuffle)</label>
+          <select id="empFixedShift"></select>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.74rem; color:var(--muted);">Προτιμώμενο Πόστο</label>
+            <select id="empPrefStation">
+              <option value="any">Οποιοδήποτε συμβατό</option>
+              <option value="coffee1">Πόστο 1</option>
+              <option value="coffee2">Πόστο 2</option>
+              <option value="sandwich">Σάντουιτς</option>
+              <option value="prep">Προετοιμασία</option>
+              <option value="dough">Ζυμωτής</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="grid-column: 1 / -1;">
+          <button type="submit" class="btn-green">➕ Προσθήκη Εργαζομένου</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 12px; font-size:1.05rem;">📋 Λίστα Προσωπικού & Υπόλοιπο Αδειών (<span id="empCount">0</span>)</h3>
+      <div class="table-wrap">
+        <table id="empTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: RULES & STATIONS -->
+  <div id="tab-rules" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 10px;">🏪 Καθημερινές Βάρδιες ανά Πόστο & Ειδικότητα</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Πόστο</th>
+              <th>Ειδικότητα</th>
+              <th>Ωράριο</th>
+              <th>Άτομα / Ημέρα</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><b>Πόστο 1</b></td><td>Ταμίας</td><td>07:00 – 15:00</td><td>1</td></tr>
+            <tr><td><b>Πόστο 1</b></td><td>Barista</td><td>07:00 – 15:00</td><td>1</td></tr>
+            <tr><td><b>Πόστο 2</b></td><td>Ταμίας</td><td>09:00 – 17:00</td><td>1</td></tr>
+            <tr><td><b>Πόστο 2</b></td><td>Barista</td><td>09:00 – 17:00</td><td>1</td></tr>
+            <tr><td><b>Πόστο 1</b></td><td>Barista</td><td>08:00 – 12:00</td><td>1</td></tr>
+            <tr><td><b>Πόστο 1</b></td><td>Barista</td><td>11:30 – 19:30</td><td>1</td></tr>
+            <tr><td><b>Πόστο 1</b></td><td>Ταμίας</td><td>13:30 – 21:30</td><td>1</td></tr>
+            <tr><td><b>Πόστο 2</b></td><td>Ταμίας</td><td>13:30 – 21:30</td><td>1</td></tr>
+            <tr><td><b>Σάντουιτς</b></td><td>Βοηθός Κουζίνας</td><td>09:30 – 17:30</td><td>1</td></tr>
+            <tr><td><b>Σάντουιτς</b></td><td>Βοηθός Κουζίνας</td><td>13:30 – 21:30</td><td>1</td></tr>
+            <tr><td><b>Προετοιμασία</b></td><td>Βοηθός Κουζίνας</td><td>09:00 – 17:00</td><td>1</td></tr>
+            <tr><td><b>Ζυμωτής</b></td><td>Ζυμωτής</td><td>13:30 – 21:30</td><td>1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px;">⚖️ Βαρύτητα Ημερών & Κανόνες Shuffle</h3>
+      <ul style="font-size:0.9rem; line-height:1.7; margin:0; padding-left:20px;">
+        <li><b>Βαρύτητα Ημερών:</b> Δευτέρα–Πέμπτη πιο χαλαρές, Παρασκευή &amp; Κυριακή πιο απαιτητικές, Σάββατο το πιο απαιτητικό.</li>
+        <li><b>Σήμανση Αργίας / Έκτακτου Φόρτου:</b> Κάθε μέρα έχει κουμπί πάνω της για να σημαίνεται ως αργία/απαιτητική και να μπαίνει ψηλά στην προτεραιότητα του Shuffle.</li>
+        <li><b>Σειρά &amp; Όριο Βαρδιών:</b> Γεμίζει πρώτα με όσους έχουν στάνταρ ωράριο/ρεπό και συμπληρώνει από τους υπόλοιπους χωρίς υπέρβαση βαρδιών.</li>
+        <li><b>Αυτόματη Λήξη &amp; Υπερωρίες:</b> Η ώρα λήξης συμπληρώνεται αυτόματα από την έναρξη, με ελεύθερη επεξεργασία για υπερωρίες.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CELL MODAL -->
+<div class="modal-backdrop" id="cellModal">
+  <div class="modal">
+    <h3 id="modalTitle">Επεξεργασία / Μικροαλλαγή Βάρδιας</h3>
+    <div style="margin-bottom:12px;">
+      <label>Επιλογή Βάρδιας / Άδειας / Αναρρωτικής</label>
+      <select id="modalShiftSelect" onchange="onModalShiftChange()"></select>
+    </div>
+
+    <div id="customTimeBox" class="field-box hidden" style="margin-bottom:12px;">
+      <label style="margin-bottom:8px;">✏️ Ωράριο (Αυτόματη λήξη με έναρξη — επεξεργάσιμη για υπερωρίες)</label>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label style="font-size:0.74rem; color:var(--muted);">Ώρα Έναρξης</label>
+          <input type="time" id="customStartInput" value="08:00" onchange="autoFillEndTimeFromStart()" oninput="autoFillEndTimeFromStart()" />
+        </div>
+        <div>
+          <label style="font-size:0.74rem; color:var(--muted);">Ώρα Λήξης (επεξεργάσιμη)</label>
+          <input type="time" id="customEndInput" value="12:00" />
+        </div>
+      </div>
+      <div id="customHoursHint" style="font-size:0.74rem; color:var(--muted); margin-top:6px;"></div>
+      <div style="margin-top:8px;">
+        <label style="font-size:0.74rem; color:var(--muted);">Πόστο / Τμήμα (προαιρετικό)</label>
+        <select id="customStationSelect">
+          <option value="">Χωρίς συγκεκριμένο πόστο</option>
+          <option value="coffee1">Πόστο 1</option>
+          <option value="coffee2">Πόστο 2</option>
+          <option value="sandwich">Σάντουιτς</option>
+          <option value="prep">Προετοιμασία</option>
+          <option value="dough">Ζυμωτής</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="sickPdfBox" class="field-box hidden" style="margin-bottom:12px;">
+      <label>📄 Επισύναψη PDF Αναρρωτικής (ημερομηνίες γνωμάτευσης)</label>
+      <input type="file" id="cellPdfInput" accept="application/pdf" />
+      <div id="cellPdfStatus" style="font-size:0.78rem; color:var(--muted); margin-top:6px;"></div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <input type="checkbox" id="modalLockCheck" style="width:auto;" />
+      <label for="modalLockCheck" style="margin:0; cursor:pointer;">🔒 Κλείδωμα κελιού (να μην αλλάζει στο Shuffle)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal()">Άκυρο</button>
+      <button class="btn-blue" onclick="saveCellEdit()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<!-- ABSENCE RANGE MODAL -->
+<div class="modal-backdrop" id="absenceRangeModal">
+  <div class="modal">
+    <h3>🏖️ / 🏥 Χορήγηση Άδειας ή Αναρρωτικής σε Ημερομηνίες</h3>
+    <div style="margin-bottom:10px;">
+      <label>Εργαζόμενος</label>
+      <select id="absEmpSelect" onchange="updateAbsLeaveInfo()"></select>
+      <div id="absLeaveInfo" style="font-size:0.78rem; color:var(--muted); margin-top:4px;"></div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label>Τύπος</label>
+      <select id="absTypeSelect" onchange="toggleAbsRangePdf()">
+        <option value="LEAVE">🏖️ Κανονική Άδεια (αφαιρείται από υπόλοιπο)</option>
+        <option value="SICK">🏥 Αναρρωτική Άδεια (με PDF ημερομηνιών)</option>
+      </select>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div>
+        <label>Από Ημερομηνία</label>
+        <input type="date" id="absStartDate" />
+      </div>
+      <div>
+        <label>Έως Ημερομηνία</label>
+        <input type="date" id="absEndDate" />
+      </div>
+    </div>
+    <div id="absRangePdfBox" class="field-box hidden" style="margin-bottom:10px;">
+      <label>📄 PDF Αναρρωτικής (ισχύει για το διάστημα ημερομηνιών)</label>
+      <input type="file" id="absRangePdfInput" accept="application/pdf" />
+      <div style="font-size:0.73rem; color:var(--muted); margin-top:4px;">Προτεινόμενο μέγεθος PDF έως ~1.8 MB για τοπική αποθήκευση.</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeAbsenceRangeModal()">Άκυρο</button>
+      <button class="btn-green" onclick="applyAbsenceRange()">Καταχώρηση στις Ημερομηνίες</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT EMPLOYEE MODAL -->
+<div class="modal-backdrop" id="empEditModal">
+  <div class="modal">
+    <h3>✏️ Επεξεργασία Στοιχείων, Αδειών & Ωραρίων</h3>
+    <div style="display:grid; grid-template-columns:2fr 1fr; gap:10px; margin-bottom:10px;">
+      <div>
+        <label>Ονοματεπώνυμο</label>
+        <input type="text" id="editEmpName" />
+      </div>
+      <div>
+        <label>Δικαιούμενες Άδειες</label>
+        <input type="number" id="editEmpLeaveQuota" min="0" max="60" />
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label>Βασική Ειδικότητα</label>
+      <select id="editEmpRole"></select>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label>Επιπλέον Δυνατότητες</label>
+      <div class="check-group" id="editEmpExtraRoles"></div>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+      <div>
+        <label>Μέρες / Εβδ. (1–6)</label>
+        <input type="number" id="editEmpDays" min="1" max="6" />
+      </div>
+      <div>
+        <label>Ώρες / Βάρδια</label>
+        <input type="number" id="editEmpHours" min="1" max="12" step="0.5" />
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label>Στάνταρ Ρεπό (2, 3, 4 κ.λπ.)</label>
+      <div class="check-group" id="editEmpFixedOff">
+        <label class="check-item"><input type="checkbox" value="0" /> Δευ</label>
+        <label class="check-item"><input type="checkbox" value="1" /> Τρι</label>
+        <label class="check-item"><input type="checkbox" value="2" /> Τετ</label>
+        <label class="check-item"><input type="checkbox" value="3" /> Πεμ</label>
+        <label class="check-item"><input type="checkbox" value="4" /> Παρ</label>
+        <label class="check-item"><input type="checkbox" value="5" /> Σαβ</label>
+        <label class="check-item"><input type="checkbox" value="6" /> Κυρ</label>
+      </div>
+    </div>
+    <div style="margin-bottom:10px;">
+      <label>Στάνταρ Ωράριο (Κλειδωμένο στο Shuffle)</label>
+      <select id="editEmpFixedShift"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeEmpEditModal()">Άκυρο</button>
+      <button class="btn-green" onclick="saveEmpEdit()">Αποθήκευση Αλλαγών</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BASE_SHIFTS = {
+    OFF:            { code: 'OFF',            label: 'ΡΕΠΟ',                      time: '',            start: null, end: null, hours: 0, station: null,     cls: 'sh-off' },
+    LEAVE:          { code: 'LEAVE',          label: '🏖️ ΑΔΕΙΑ',                  time: '',            start: null, end: null, hours: 0, station: null,     cls: 'sh-leave' },
+    SICK:           { code: 'SICK',           label: '🏥 ΑΝΑΡΡΩΤΙΚΗ',             time: '',            start: null, end: null, hours: 0, station: null,     cls: 'sh-sick' },
+    p1_cash_early:  { code: 'p1_cash_early',  label: 'Π1 Ταμείο • 07:00-15:00',   time: '07:00-15:00', start: 7.0,  end: 15.0, hours: 8, station: 'coffee1',  cls: 'sh-coffee1' },
+    p1_bar_early:   { code: 'p1_bar_early',   label: 'Π1 Barista • 07:00-15:00',  time: '07:00-15:00', start: 7.0,  end: 15.0, hours: 8, station: 'coffee1',  cls: 'sh-coffee1' },
+    p2_cash_early:  { code: 'p2_cash_early',  label: 'Π2 Ταμείο • 09:00-17:00',   time: '09:00-17:00', start: 9.0,  end: 17.0, hours: 8, station: 'coffee2',  cls: 'sh-coffee2' },
+    p2_bar_early:   { code: 'p2_bar_early',   label: 'Π2 Barista • 09:00-17:00',  time: '09:00-17:00', start: 9.0,  end: 17.0, hours: 8, station: 'coffee2',  cls: 'sh-coffee2' },
+    p1_bar_4h:      { code: 'p1_bar_4h',      label: 'Π1 Barista • 08:00-12:00',  time: '08:00-12:00', start: 8.0,  end: 12.0, hours: 4, station: 'coffee1',  cls: 'sh-coffee1' },
+    p1_bar_mid:     { code: 'p1_bar_mid',     label: 'Π1 Barista • 11:30-19:30',  time: '11:30-19:30', start: 11.5, end: 19.5, hours: 8, station: 'coffee1',  cls: 'sh-coffee1' },
+    p1_cash_late:   { code: 'p1_cash_late',   label: 'Π1 Ταμείο • 13:30-21:30',   time: '13:30-21:30', start: 13.5, end: 21.5, hours: 8, station: 'coffee1',  cls: 'sh-coffee1' },
+    p2_cash_late:   { code: 'p2_cash_late',   label: 'Π2 Ταμείο • 13:30-21:30',   time: '13:30-21:30', start: 13.5, end: 21.5, hours: 8, station: 'coffee2',  cls: 'sh-coffee2' },
+    sw_early:       { code: 'sw_early',       label: 'Σάντουιτς • 09:30-17:30',   time: '09:30-17:30', start: 9.5,  end: 17.5, hours: 8, station: 'sandwich', cls: 'sh-sandwich' },
+    sw_late:        { code: 'sw_late',        label: 'Σάντουιτς • 13:30-21:30',   time: '13:30-21:30', start: 13.5, end: 21.5, hours: 8, station: 'sandwich', cls: 'sh-sandwich' },
+    prep_day:       { code: 'prep_day',       label: 'Προετοιμασία • 09:00-17:00',time: '09:00-17:00', start: 9.0,  end: 17.0, hours: 8, station: 'prep',     cls: 'sh-prep' },
+    dough_late:     { code: 'dough_late',     label: 'Ζυμωτής • 13:30-21:30',     time: '13:30-21:30', start: 13.5, end: 21.5, hours: 8, station: 'dough',    cls: 'sh-dough' }
+  };
+
+  const DAILY_REQUIREMENTS = [
+    { id: 'slot_p1_cash_e',  label: 'Πόστο 1 • Ταμίας (07:00-15:00)',          shiftCode: 'p1_cash_early', station: 'coffee1',  role: 'Ταμίας',          need: 1 },
+    { id: 'slot_p1_bar_e',   label: 'Πόστο 1 • Barista (07:00-15:00)',         shiftCode: 'p1_bar_early',  station: 'coffee1',  role: 'Barista',         need: 1 },
+    { id: 'slot_p2_cash_e',  label: 'Πόστο 2 • Ταμίας (09:00-17:00)',          shiftCode: 'p2_cash_early', station: 'coffee2',  role: 'Ταμίας',          need: 1 },
+    { id: 'slot_p2_bar_e',   label: 'Πόστο 2 • Barista (09:00-17:00)',         shiftCode: 'p2_bar_early',  station: 'coffee2',  role: 'Barista',         need: 1 },
+    { id: 'slot_p1_bar_4h',  label: 'Πόστο 1 • Barista (08:00-12:00)',         shiftCode: 'p1_bar_4h',     station: 'coffee1',  role: 'Barista',         need: 1 },
+    { id: 'slot_p1_bar_m',   label: 'Πόστο 1 • Barista (11:30-19:30)',         shiftCode: 'p1_bar_mid',    station: 'coffee1',  role: 'Barista',         need: 1 },
+    { id: 'slot_p1_cash_l',  label: 'Πόστο 1 • Ταμίας (13:30-21:30)',          shiftCode: 'p1_cash_late',  station: 'coffee1',  role: 'Ταμίας',          need: 1 },
+    { id: 'slot_p2_cash_l',  label: 'Πόστο 2 • Ταμίας (13:30-21:30)',          shiftCode: 'p2_cash_late',  station: 'coffee2',  role: 'Ταμίας',          need: 1 },
+    { id: 'slot_sw_e',       label: 'Σάντουιτς • Βοηθός Κουζίνας (09:30-17:30)', shiftCode: 'sw_early',    station: 'sandwich', role: 'Βοηθός Κουζίνας', need: 1 },
+    { id: 'slot_sw_l',       label: 'Σάντουιτς • Βοηθός Κουζίνας (13:30-21:30)', shiftCode: 'sw_late',     station: 'sandwich', role: 'Βοηθός Κουζίνας', need: 1 },
+    { id: 'slot_prep',       label: 'Προετοιμασία • Βοηθός Κουζίνας (09:00-17:00)', shiftCode: 'prep_day', station: 'prep',     role: 'Βοηθός Κουζίνας', need: 1 },
+    { id: 'slot_dough',      label: 'Ζυμωτής • Ζυμωτής (13:30-21:30)',        shiftCode: 'dough_late',    station: 'dough',    role: 'Ζυμωτής',         need: 1 }
+  ];
+
+  const DAYS_GR = ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο', 'Κυριακή'];
+  const MAX_UNDO = 15;
+
+  let state = {
+    weekOffset: 0,
+    roles: ['Barista', 'Ταμίας', 'Βοηθός Κουζίνας', 'Ζυμωτής'],
+    employees: [],
+    schedules: {},
+    dayFlags: {} // { [weekKey]: [false, false, ...] }
+  };
+
+  let undoStack = [];
+  let editingCell = null;
+  let editingEmpId = null;
+
+  function pushUndoSnapshot() {
+    undoStack.push(JSON.stringify({ schedules: state.schedules, dayFlags: state.dayFlags }));
+    if (undoStack.length > MAX_UNDO) {
+      undoStack.shift();
+    }
+    updateUndoButton();
+  }
+
+  function undoLastAction() {
+    if (undoStack.length === 0) return;
+    const prev = JSON.parse(undoStack.pop());
+    state.schedules = prev.schedules || {};
+    state.dayFlags = prev.dayFlags || {};
+    saveState();
+    updateUndoButton();
+    renderAll();
+  }
+
+  function updateUndoButton() {
+    const btn = document.getElementById('undoBtn');
+    if (!btn) return;
+    btn.disabled = undoStack.length === 0;
+    btn.title = undoStack.length > 0
+      ? `Αναίρεση τελευταίας αλλαγής (${undoStack.length} διαθέσιμες)`
+      : 'Δεν υπάρχει διαθέσιμη αλλαγή για αναίρεση';
+  }
+
+  function loadState() {
+    const saved = localStorage.getItem('bakshifts_v9')
+      || localStorage.getItem('bakshifts_v8')
+      || localStorage.getItem('bakshifts_v7')
+      || localStorage.getItem('bakshifts_v6');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        state = Object.assign({
+          weekOffset: 0,
+          roles: ['Barista', 'Ταμίας', 'Βοηθός Κουζίνας', 'Ζυμωτής'],
+          employees: [],
+          schedules: {},
+          dayFlags: {}
+        }, parsed);
+      } catch (e) {}
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem('bakshifts_v9', JSON.stringify(state));
+    } catch (e) {
+      alert('Προσοχή: Το μέγεθος των δεδομένων (πιθανώς μεγάλο PDF) ξεπέρασε το όριο τοπικής αποθήκευσης του browser.');
+    }
+  }
+
+  function ensureDayFlags(weekKey = getCurrentWeekKey()) {
+    if (!Array.isArray(state.dayFlags[weekKey]) || state.dayFlags[weekKey].length !== 7) {
+      state.dayFlags[weekKey] = [false, false, false, false, false, false, false];
+    }
+    return state.dayFlags[weekKey];
+  }
+
+  function toggleHolidayFlag(dayIdx) {
+    const weekKey = getCurrentWeekKey();
+    const flags = ensureDayFlags(weekKey);
+    pushUndoSnapshot();
+    flags[dayIdx] = !flags[dayIdx];
+    saveState();
+    renderAll();
+  }
+
+  // Day weight: higher = more demanding (processed first in Shuffle)
+  // Base: Mon-Thu (1), Fri (3), Sun (3.5), Sat (5). If flagged as holiday/busy: +3
+  function getDayDemandScore(weekKey, dayIdx) {
+    const flags = ensureDayFlags(weekKey);
+    const baseByDay = [1, 1, 1, 1, 3, 5, 3.5];
+    return (baseByDay[dayIdx] || 1) + (flags[dayIdx] ? 3 : 0);
+  }
+
+  function getDayLoadMeta(weekKey, dayIdx) {
+    const flags = ensureDayFlags(weekKey);
+    const isFlagged = !!flags[dayIdx];
+    if (isFlagged) {
+      return { text: '🎉 Αργία / Φόρτος', pillCls: 'load-holiday', colCls: 'holiday-day-col' };
+    }
+    if (dayIdx === 5) {
+      return { text: '🔥 Πολύ Απαιτητική', pillCls: 'load-peak', colCls: 'peak-day-col' };
+    }
+    if (dayIdx === 4 || dayIdx === 6) {
+      return { text: '⚡ Απαιτητική', pillCls: 'load-busy', colCls: 'busy-day-col' };
+    }
+    return { text: '🌿 Χαλαρή', pillCls: 'load-light', colCls: '' };
+  }
+
+  function parseTimeToHours(hhmm) {
+    if (!hhmm || !hhmm.includes(':')) return null;
+    const [h, m] = hhmm.split(':').map(Number);
+    return h + (m / 60);
+  }
+
+  function formatHoursToHHMM(val) {
+    const wrapped = ((val % 24) + 24) % 24;
+    const h = Math.floor(wrapped);
+    const m = Math.round((wrapped - h) * 60);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  function resolveShift(cell) {
+    if (!cell) return BASE_SHIFTS.OFF;
+    if (cell.shift === 'CUSTOM' && cell.custom) {
+      const st = parseTimeToHours(cell.custom.start);
+      const en = parseTimeToHours(cell.custom.end);
+      let diff = 0;
+      if (st !== null && en !== null) {
+        diff = en >= st ? (en - st) : ((24 - st) + en);
+      }
+      const stLabel = cell.custom.station ? getStationShortName(cell.custom.station) + ' • ' : 'Ωράριο • ';
+      return {
+        code: 'CUSTOM',
+        label: `${stLabel}${cell.custom.start}-${cell.custom.end}`,
+        time: `${cell.custom.start}-${cell.custom.end}`,
+        start: st,
+        end: en,
+        hours: diff,
+        station: cell.custom.station || null,
+        cls: 'sh-custom'
+      };
+    }
+    return BASE_SHIFTS[cell.shift] || BASE_SHIFTS.OFF;
+  }
+
+  function getStationShortName(st) {
+    if (st === 'coffee1') return 'Πόστο 1';
+    if (st === 'coffee2') return 'Πόστο 2';
+    if (st === 'sandwich') return 'Σάντουιτς';
+    if (st === 'prep') return 'Προετοιμασία';
+    if (st === 'dough') return 'Ζυμωτής';
+    return '';
+  }
+
+  function getEmpRoles(emp) {
+    return Array.from(new Set([emp.role, ...(emp.extraRoles || [])].filter(Boolean)));
+  }
+
+  function getEmpWorkedHoursForCell(emp, cell) {
+    const sh = resolveShift(cell);
+    if (!sh || sh.start === null) return 0;
+    return sh.hours;
+  }
+
+  function getLeaveStats(empId) {
+    const emp = state.employees.find(e => e.id === empId);
+    const quota = Number(emp?.leaveQuota ?? 20);
+    let usedLeave = 0;
+    let sickDays = 0;
+
+    Object.values(state.schedules || {}).forEach(weekObj => {
+      const row = weekObj?.[empId];
+      if (!Array.isArray(row)) return;
+      row.forEach(cell => {
+        if (cell?.shift === 'LEAVE') usedLeave++;
+        if (cell?.shift === 'SICK') sickDays++;
+      });
+    });
+
+    return { quota, usedLeave, remaining: quota - usedLeave, sickDays };
+  }
+
+  function readPdfAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      if (!file) return resolve(null);
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        return reject(new Error('Παρακαλώ επίλεξε αρχείο PDF.'));
+      }
+      if (file.size > 1.8 * 1024 * 1024) {
+        return reject(new Error('Το PDF είναι πάνω από 1.8 MB. Δοκίμασε μικρότερο αρχείο PDF για τοπική αποθήκευση.'));
+      }
+      const reader = new FileReader();
+      reader.onload = () => resolve({ name: file.name, dataUrl: reader.result });
+      reader.onerror = () => reject(new Error('Σφάλμα ανάγνωσης αρχείου PDF.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function viewPdf(event, dataUrl, fileName) {
+    event.stopPropagation();
+    if (!dataUrl) return;
+    const win = window.open();
+    if (win) {
+      win.document.write(`<title>${fileName || 'Αναρρωτική PDF'}</title><iframe src="${dataUrl}" style="width:100%;height:100%;border:none;"></iframe>`);
+    } else {
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = fileName || 'anarrotiki.pdf';
+      a.click();
+    }
+  }
+
+  // ====== ROLES & FIXED SHIFT OPTIONS ======
+  function populateFixedShiftSelects() {
+    const workOptions = DAILY_REQUIREMENTS.map(req =>
+      `<option value="${req.shiftCode}">${req.label}</option>`
+    ).join('');
+    const fullHtml = `<option value="">Όχι (Ελεύθερο στο Shuffle)</option>${workOptions}`;
+
+    const addSel = document.getElementById('empFixedShift');
+    const editSel = document.getElementById('editEmpFixedShift');
+    if (addSel) {
+      const prevAdd = addSel.value;
+      addSel.innerHTML = fullHtml;
+      if (prevAdd) addSel.value = prevAdd;
+    }
+    if (editSel) {
+      const prevEdit = editSel.value;
+      editSel.innerHTML = fullHtml;
+      if (prevEdit) editSel.value = prevEdit;
+    }
+  }
+
+  function addNewRole() {
+    const inp = document.getElementById('newRoleInput');
+    const name = inp.value.trim();
+    if (!name) return;
+    if (!state.roles.includes(name)) {
+      state.roles.push(name);
+      saveState();
+      renderRoleControls();
+      renderEmployeesTable();
+    }
+    inp.value = '';
+  }
+
+  function removeRole(roleName) {
+    if (state.roles.length <= 1) {
+      alert('Πρέπει να υπάρχει τουλάχιστον μία ειδικότητα.');
+      return;
+    }
+    if (!confirm(`Διαγραφή ειδικότητας "${roleName}";`)) return;
+    state.roles = state.roles.filter(r => r !== roleName);
+    saveState();
+    renderRoleControls();
+    renderEmployeesTable();
+  }
+
+  function renderRoleControls() {
+    populateFixedShiftSelects();
+
+    const pills = document.getElementById('rolesListPills');
+    pills.innerHTML = state.roles.map(r => `
+      <span class="role-pill">
+        ${r}
+        <button type="button" title="Διαγραφή ειδικότητας" onclick="removeRole('${r.replace(/'/g, "\\'")}')">✕</button>
+      </span>
+    `).join('');
+
+    const sel = document.getElementById('empRole');
+    const currentVal = sel.value;
+    sel.innerHTML = state.roles.map(r => `<option value="${r}">${r}</option>`).join('');
+    if (state.roles.includes(currentVal)) sel.value = currentVal;
+
+    const extraGroup = document.getElementById('empExtraRolesGroup');
+    extraGroup.innerHTML = state.roles.map(r => `
+      <label class="check-item"><input type="checkbox" value="${r}" /> ${r}</label>
+    `).join('');
+  }
+
+  // ====== DATES ======
+  function getMondayOfWeek(offset = 0) {
+    const now = new Date();
+    const day = now.getDay();
+    const diffToMon = (day === 0 ? -6 : 1 - day) + (offset * 7);
+    const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon);
+    mon.setHours(0, 0, 0, 0);
+    return mon;
+  }
+
+  function formatDateISO(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function formatDateGR(d) {
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function getWeekDates(offset = state.weekOffset) {
+    const mon = getMondayOfWeek(offset);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(mon);
+      d.setDate(mon.getDate() + i);
+      return d;
+    });
+  }
+
+  function getCurrentWeekKey() {
+    return formatDateISO(getMondayOfWeek(state.weekOffset));
+  }
+
+  function ensureWeekSchedule(weekKey = getCurrentWeekKey()) {
+    ensureDayFlags(weekKey);
+    if (!state.schedules[weekKey]) state.schedules[weekKey] = {};
+    state.employees.forEach(emp => {
+      if (!state.schedules[weekKey][emp.id]) {
+        const fixedOffSet = new Set((emp.fixedOffDays || []).map(Number));
+        state.schedules[weekKey][emp.id] = Array.from({ length: 7 }, (_, dayIdx) => {
+          if (fixedOffSet.has(dayIdx)) {
+            return { shift: 'OFF', locked: true };
+          }
+          if (emp.fixedShift) {
+            return { shift: emp.fixedShift, locked: true };
+          }
+          return { shift: 'OFF', locked: false };
+        });
+      }
+    });
+  }
+
+  function countWorkedSundaysInMonth(empId, targetSundayDate) {
+    const targetMonth = targetSundayDate.getMonth();
+    const targetYear = targetSundayDate.getFullYear();
+    let count = 0;
+
+    for (let w = -5; w <= 5; w++) {
+      const dates = getWeekDates(state.weekOffset + w);
+      const sun = dates[6];
+      if (sun.getMonth() === targetMonth && sun.getFullYear() === targetYear) {
+        const wKey = formatDateISO(dates[0]);
+        const entry = state.schedules[wKey]?.[empId]?.[6];
+        if (entry && !['OFF', 'LEAVE', 'SICK'].includes(entry.shift)) {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  // ====== NAV ======
+  function switchTab(tab) {
+    ['schedule', 'employees', 'rules'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+      document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
+    });
+    renderAll();
+  }
+
+  function changeWeek(delta) {
+    state.weekOffset += delta;
+    saveState();
+    renderAll();
+  }
+
+  function copyPreviousWeek() {
+    const prevKey = formatDateISO(getMondayOfWeek(state.weekOffset - 1));
+    const currKey = getCurrentWeekKey();
+    if (!state.schedules[prevKey]) {
+      alert('Δεν υπάρχει αποθηκευμένο πρόγραμμα στην προηγούμενη εβδομάδα.');
+      return;
+    }
+    pushUndoSnapshot();
+    state.schedules[currKey] = JSON.parse(JSON.stringify(state.schedules[prevKey]));
+    if (state.dayFlags[prevKey]) {
+      state.dayFlags[currKey] = [...state.dayFlags[prevKey]];
+    }
+    saveState();
+    renderAll();
+  }
+
+  // ====== EMPLOYEES ======
+  function addEmployee(e) {
+    e.preventDefault();
+    const extraRoles = Array.from(document.querySelectorAll('#empExtraRolesGroup input:checked')).map(i => i.value);
+    const fixedOffDays = Array.from(document.querySelectorAll('#empFixedOffGroup input:checked')).map(i => Number(i.value));
+    const daysPerWeek = Math.min(7, Math.max(1, Number(document.getElementById('empDays').value)));
+    const shiftHours = Math.max(1, Number(document.getElementById('empShiftHours').value));
+    const leaveQuota = Math.max(0, Number(document.getElementById('empLeaveQuota').value) || 0);
+
+    const emp = {
+      id: 'emp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      name: document.getElementById('empName').value.trim(),
+      role: document.getElementById('empRole').value,
+      extraRoles,
+      daysPerWeek,
+      shiftHours,
+      leaveQuota,
+      prefStation: document.getElementById('empPrefStation').value,
+      fixedShift: document.getElementById('empFixedShift').value,
+      fixedOffDays
+    };
+
+    state.employees.push(emp);
+    document.getElementById('empForm').reset();
+    document.getElementById('empDays').value = 5;
+    document.getElementById('empShiftHours').value = 8;
+    document.getElementById('empLeaveQuota').value = 20;
+    ensureWeekSchedule();
+    saveState();
+    renderAll();
+  }
+
+  function openEmpEditModal(empId) {
+    const emp = state.employees.find(e => e.id === empId);
+    if (!emp) return;
+    editingEmpId = empId;
+
+    populateFixedShiftSelects();
+    document.getElementById('editEmpName').value = emp.name;
+    document.getElementById('editEmpLeaveQuota').value = emp.leaveQuota ?? 20;
+
+    const roleSel = document.getElementById('editEmpRole');
+    const rolesSet = Array.from(new Set([...state.roles, emp.role]));
+    roleSel.innerHTML = rolesSet.map(r => `<option value="${r}" ${r === emp.role ? 'selected' : ''}>${r}</option>`).join('');
+
+    const extraContainer = document.getElementById('editEmpExtraRoles');
+    extraContainer.innerHTML = rolesSet.map(r => {
+      const checked = (emp.extraRoles || []).includes(r) ? 'checked' : '';
+      return `<label class="check-item"><input type="checkbox" value="${r}" ${checked} /> ${r}</label>`;
+    }).join('');
+
+    document.getElementById('editEmpDays').value = emp.daysPerWeek || 5;
+    document.getElementById('editEmpHours').value = emp.shiftHours || 8;
+
+    const offSet = new Set((emp.fixedOffDays || []).map(Number));
+    document.querySelectorAll('#editEmpFixedOff input[type="checkbox"]').forEach(cb => {
+      cb.checked = offSet.has(Number(cb.value));
+    });
+
+    document.getElementById('editEmpFixedShift').value = emp.fixedShift || '';
+    document.getElementById('empEditModal').classList.add('open');
+  }
+
+  function closeEmpEditModal() {
+    document.getElementById('empEditModal').classList.remove('open');
+    editingEmpId = null;
+  }
+
+  function saveEmpEdit() {
+    if (!editingEmpId) return;
+    const emp = state.employees.find(e => e.id === editingEmpId);
+    if (!emp) return;
+
+    emp.name = document.getElementById('editEmpName').value.trim() || emp.name;
+    emp.leaveQuota = Math.max(0, Number(document.getElementById('editEmpLeaveQuota').value) || 0);
+    emp.role = document.getElementById('editEmpRole').value;
+    emp.extraRoles = Array.from(document.querySelectorAll('#editEmpExtraRoles input:checked')).map(i => i.value);
+    emp.daysPerWeek = Math.min(7, Math.max(1, Number(document.getElementById('editEmpDays').value) || 5));
+    emp.shiftHours = Math.max(1, Number(document.getElementById('editEmpHours').value) || 8);
+    emp.fixedOffDays = Array.from(document.querySelectorAll('#editEmpFixedOff input:checked')).map(i => Number(i.value));
+    emp.fixedShift = document.getElementById('editEmpFixedShift').value;
+
+    saveState();
+    closeEmpEditModal();
+    renderAll();
+  }
+
+  function deleteEmployee(id) {
+    if (!confirm('Διαγραφή εργαζομένου από το πρόγραμμα;')) return;
+    pushUndoSnapshot();
+    state.employees = state.employees.filter(e => e.id !== id);
+    Object.keys(state.schedules).forEach(wk => delete state.schedules[wk][id]);
+    saveState();
+    renderAll();
+  }
+
+  // ====== DIRECT SMART SHUFFLE ======
+  function hasStandardPattern(emp) {
+    return Boolean(emp.fixedShift) || ((emp.fixedOffDays || []).length > 0);
+  }
+
+  function runShuffle() {
+    if (state.employees.length === 0) {
+      alert('Πρόσθεσε πρώτα εργαζομένους (ή πάτα «🧪 Φόρτωση Δοκιμαστικής Ομάδας»).');
+      return;
+    }
+
+    pushUndoSnapshot();
+
+    const dates = getWeekDates();
+    const weekKey = formatDateISO(dates[0]);
+    ensureWeekSchedule(weekKey);
+    const weekData = state.schedules[weekKey];
+
+    // Step 1: Reset unlocked cells, keep leaves/sick/fixed-off/fixed-shift
+    state.employees.forEach(emp => {
+      const fixedOffSet = new Set((emp.fixedOffDays || []).map(Number));
+      for (let d = 0; d < 7; d++) {
+        const cell = weekData[emp.id][d];
+        if (cell.shift === 'LEAVE' || cell.shift === 'SICK') {
+          cell.locked = true;
+        } else if (fixedOffSet.has(d)) {
+          weekData[emp.id][d] = { shift: 'OFF', locked: true };
+        } else if (emp.fixedShift) {
+          weekData[emp.id][d] = { shift: emp.fixedShift, locked: true };
+        } else if (!cell.locked) {
+          weekData[emp.id][d] = { shift: 'OFF', locked: false };
+        }
+      }
+    });
+
+    // Strict max days per week enforcement
+    state.employees.forEach(emp => {
+      const maxDays = Number(emp.daysPerWeek || 5);
+      let activeDays = weekData[emp.id]
+        .map((cell, idx) => ({ cell, idx }))
+        .filter(item => !['OFF', 'LEAVE', 'SICK'].includes(item.cell.shift));
+
+      if (activeDays.length > maxDays) {
+        for (let i = activeDays.length - 1; i >= 0 && activeDays.length > maxDays; i--) {
+          const target = activeDays[i];
+          if (!target.cell.locked && !emp.fixedShift) {
+            weekData[emp.id][target.idx] = { shift: 'OFF', locked: false };
+            activeDays.splice(i, 1);
+          }
+        }
+      }
+    });
+
+    const getWorkDays = (empId) =>
+      weekData[empId].filter(c => !['OFF', 'LEAVE', 'SICK'].includes(c.shift)).length;
+
+    const hasEnoughRest = (empId, dayIdx, candidateShiftCode) => {
+      if (dayIdx === 0) return true;
+      const prev = resolveShift(weekData[empId][dayIdx - 1]);
+      const next = BASE_SHIFTS[candidateShiftCode];
+      if (!prev || prev.end === null || !next || next.start === null) return true;
+      return ((24 - prev.end) + next.start) >= 11;
+    };
+
+    // Prioritize demanding days first: Saturday (5), flagged holiday/busy days, Sunday (6), Friday (4), then Mon-Thu
+    const dayOrder = [0, 1, 2, 3, 4, 5, 6].sort((a, b) => {
+      const diff = getDayDemandScore(weekKey, b) - getDayDemandScore(weekKey, a);
+      return diff !== 0 ? diff : a - b;
+    });
+
+    dayOrder.forEach(d => {
+      const currentDate = dates[d];
+      const isSunday = (d === 6);
+
+      DAILY_REQUIREMENTS.forEach(req => {
+        const assignedCount = state.employees.filter(emp => {
+          const s = resolveShift(weekData[emp.id][d]);
+          return s && s.code === req.shiftCode;
+        }).length;
+
+        let needed = req.need - assignedCount;
+        if (needed <= 0) return;
+
+        let candidates = state.employees.filter(emp => {
+          if (!getEmpRoles(emp).includes(req.role)) return false;
+          const cell = weekData[emp.id][d];
+          if (cell.locked || cell.shift !== 'OFF') return false;
+          if (getWorkDays(emp.id) >= Number(emp.daysPerWeek || 5)) return false;
+          if (isSunday && countWorkedSundaysInMonth(emp.id, currentDate) >= 2) return false;
+          if (!hasEnoughRest(emp.id, d, req.shiftCode)) return false;
+          return true;
+        });
+
+        // Standard pattern first, then primary role, preferred station, fewer worked days
+        candidates.sort((a, b) => {
+          const aStd = hasStandardPattern(a) ? 0 : 1;
+          const bStd = hasStandardPattern(b) ? 0 : 1;
+          if (aStd !== bStd) return aStd - bStd;
+
+          const aPrimary = a.role === req.role ? 0 : 1;
+          const bPrimary = b.role === req.role ? 0 : 1;
+          if (aPrimary !== bPrimary) return aPrimary - bPrimary;
+
+          const aPref = a.prefStation === req.station ? 0 : 1;
+          const bPref = b.prefStation === req.station ? 0 : 1;
+          if (aPref !== bPref) return aPref - bPref;
+
+          if (isSunday) {
+            const aSun = countWorkedSundaysInMonth(a.id, currentDate);
+            const bSun = countWorkedSundaysInMonth(b.id, currentDate);
+            if (aSun !== bSun) return aSun - bSun;
+          }
+
+          const aDays = getWorkDays(a.id);
+          const bDays = getWorkDays(b.id);
+          if (aDays !== bDays) return aDays - bDays;
+
+          return Math.random() - 0.5;
+        });
+
+        for (const emp of candidates) {
+          if (needed <= 0) break;
+          if (getWorkDays(emp.id) >= Number(emp.daysPerWeek || 5)) continue;
+          weekData[emp.id][d] = { shift: req.shiftCode, locked: false };
+          needed--;
+        }
+      });
+    });
+
+    saveState();
+    renderAll();
+  }
+
+  // ====== CELL MODAL & AUTO END TIME WITH OVERTIME EDIT ======
+  function getActiveEditingEmployee() {
+    if (!editingCell) return null;
+    return state.employees.find(e => e.id === editingCell.empId) || null;
+  }
+
+  function autoFillEndTimeFromStart() {
+    const startStr = document.getElementById('customStartInput').value;
+    const stH = parseTimeToHours(startStr);
+    if (stH === null) return;
+
+    const emp = getActiveEditingEmployee();
+    const baseHours = Number(emp?.shiftHours || 8);
+    const endStr = formatHoursToHHMM(stH + baseHours);
+    document.getElementById('customEndInput').value = endStr;
+    updateCustomHoursHint();
+  }
+
+  function updateCustomHoursHint() {
+    const startStr = document.getElementById('customStartInput').value;
+    const endStr = document.getElementById('customEndInput').value;
+    const stH = parseTimeToHours(startStr);
+    const enH = parseTimeToHours(endStr);
+    const emp = getActiveEditingEmployee();
+    const contractHours = Number(emp?.shiftHours || 8);
+
+    const hintEl = document.getElementById('customHoursHint');
+    if (stH === null || enH === null) {
+      hintEl.textContent = '';
+      return;
+    }
+
+    const duration = enH >= stH ? (enH - stH) : ((24 - stH) + enH);
+    const overtime = Math.max(0, duration - contractHours);
+    hintEl.innerHTML = overtime > 0
+      ? `Διάρκεια: <b>${duration}ω</b> (Σύμβαση: ${contractHours}ω • <span style="color:var(--accent-hover);font-weight:700;">Υπερωρία: +${overtime}ω</span>)`
+      : `Διάρκεια: <b>${duration}ω</b> (Σύμβαση: ${contractHours}ω — μπορείς να αλλάξεις τη λήξη για υπερωρία)`;
+  }
+
+  function openCellModal(empId, dayIdx) {
+    const weekKey = getCurrentWeekKey();
+    ensureWeekSchedule(weekKey);
+    const emp = state.employees.find(e => e.id === empId);
+    const cell = state.schedules[weekKey][empId][dayIdx];
+
+    editingCell = { empId, dayIdx };
+    document.getElementById('modalTitle').textContent = `${emp.name} — ${DAYS_GR[dayIdx]}`;
+
+    const sel = document.getElementById('modalShiftSelect');
+    const baseOptions = Object.values(BASE_SHIFTS).map(s =>
+      `<option value="${s.code}" ${s.code === cell.shift ? 'selected' : ''}>${s.label}</option>`
+    );
+    baseOptions.push(`<option value="CUSTOM" ${cell.shift === 'CUSTOM' ? 'selected' : ''}>✏️ Προσαρμογή / Υπερωρία</option>`);
+    sel.innerHTML = baseOptions.join('');
+
+    const defaultStart = cell.custom?.start || '08:00';
+    const stH = parseTimeToHours(defaultStart) ?? 8;
+    const defaultEnd = cell.custom?.end || formatHoursToHHMM(stH + Number(emp.shiftHours || 8));
+
+    document.getElementById('customStartInput').value = defaultStart;
+    document.getElementById('customEndInput').value = defaultEnd;
+    document.getElementById('customStationSelect').value = cell.custom?.station || '';
+
+    const endInput = document.getElementById('customEndInput');
+    endInput.oninput = updateCustomHoursHint;
+    endInput.onchange = updateCustomHoursHint;
+    updateCustomHoursHint();
+
+    document.getElementById('cellPdfInput').value = '';
+    const pdfStatus = document.getElementById('cellPdfStatus');
+    if (cell.pdf) {
+      pdfStatus.innerHTML = `Επισυναπτόμενο: <b>${cell.pdf.name}</b> <button type="button" class="btn-outline btn-sm" onclick="viewPdf(event, '${cell.pdf.dataUrl}', '${cell.pdf.name.replace(/'/g, "\\'")}')">👁️ Προβολή PDF</button>`;
+    } else {
+      pdfStatus.textContent = 'Δεν έχει επισυναφθεί PDF.';
+    }
+
+    onModalShiftChange();
+    document.getElementById('modalLockCheck').checked = !!cell.locked;
+    document.getElementById('cellModal').classList.add('open');
+  }
+
+  function onModalShiftChange() {
+    const val = document.getElementById('modalShiftSelect').value;
+    document.getElementById('customTimeBox').classList.toggle('hidden', val !== 'CUSTOM');
+    document.getElementById('sickPdfBox').classList.toggle('hidden', val !== 'SICK');
+    if (val === 'CUSTOM') updateCustomHoursHint();
+  }
+
+  function closeModal() {
+    document.getElementById('cellModal').classList.remove('open');
+    editingCell = null;
+  }
+
+  async function saveCellEdit() {
+    if (!editingCell) return;
+    const { empId, dayIdx } = editingCell;
+    const weekKey = getCurrentWeekKey();
+    const existingCell = state.schedules[weekKey][empId][dayIdx] || {};
+    const shift = document.getElementById('modalShiftSelect').value;
+    const locked = document.getElementById('modalLockCheck').checked;
+
+    const newCell = { shift, locked };
+
+    if (shift === 'CUSTOM') {
+      const start = document.getElementById('customStartInput').value;
+      const end = document.getElementById('customEndInput').value;
+      const stH = parseTimeToHours(start);
+      const enH = parseTimeToHours(end);
+      if (stH === null || enH === null || !start || !end) {
+        alert('Συμπλήρωσε έγκυρη ώρα έναρξης και λήξης.');
+        return;
+      }
+      if (stH === enH) {
+        alert('Η ώρα λήξης πρέπει να διαφέρει από την ώρα έναρξης.');
+        return;
+      }
+      newCell.custom = {
+        start,
+        end,
+        station: document.getElementById('customStationSelect').value
+      };
+    }
+
+    if (shift === 'SICK') {
+      const file = document.getElementById('cellPdfInput').files[0];
+      if (file) {
+        try {
+          newCell.pdf = await readPdfAsDataUrl(file);
+        } catch (err) {
+          alert(err.message);
+          return;
+        }
+      } else if (existingCell.pdf) {
+        newCell.pdf = existingCell.pdf;
+      }
+    }
+
+    pushUndoSnapshot();
+    state.schedules[weekKey][empId][dayIdx] = newCell;
+    saveState();
+    closeModal();
+    renderAll();
+  }
+
+  // ====== ABSENCE RANGE MODAL ======
+  function openAbsenceRangeModal() {
+    if (state.employees.length === 0) {
+      alert('Πρόσθεσε πρώτα εργαζομένους.');
+      return;
+    }
+    const empSel = document.getElementById('absEmpSelect');
+    empSel.innerHTML = state.employees.map(e => `<option value="${e.id}">${e.name}</option>`).join('');
+
+    const dates = getWeekDates();
+    document.getElementById('absStartDate').value = formatDateISO(dates[0]);
+    document.getElementById('absEndDate').value = formatDateISO(dates[0]);
+    document.getElementById('absTypeSelect').value = 'LEAVE';
+    document.getElementById('absRangePdfInput').value = '';
+    toggleAbsRangePdf();
+    updateAbsLeaveInfo();
+    document.getElementById('absenceRangeModal').classList.add('open');
+  }
+
+  function closeAbsenceRangeModal() {
+    document.getElementById('absenceRangeModal').classList.remove('open');
+  }
+
+  function toggleAbsRangePdf() {
+    const t = document.getElementById('absTypeSelect').value;
+    document.getElementById('absRangePdfBox').classList.toggle('hidden', t !== 'SICK');
+  }
+
+  function updateAbsLeaveInfo() {
+    const empId = document.getElementById('absEmpSelect').value;
+    const stats = getLeaveStats(empId);
+    document.getElementById('absLeaveInfo').innerHTML =
+      `Υπόλοιπο κανονικής άδειας: <b>${stats.remaining}</b> / ${stats.quota} μέρες (Χρησιμοποιημένες: ${stats.usedLeave} | Αναρρωτικές: ${stats.sickDays})`;
+  }
+
+  async function applyAbsenceRange() {
+    const empId = document.getElementById('absEmpSelect').value;
+    const type = document.getElementById('absTypeSelect').value;
+    const startStr = document.getElementById('absStartDate').value;
+    const endStr = document.getElementById('absEndDate').value;
+
+    if (!startStr || !endStr || endStr < startStr) {
+      alert('Συμπλήρωσε έγκυρο εύρος ημερομηνιών (Από – Έως).');
+      return;
+    }
+
+    let pdfData = null;
+    if (type === 'SICK') {
+      const file = document.getElementById('absRangePdfInput').files[0];
+      if (file) {
+        try {
+          pdfData = await readPdfAsDataUrl(file);
+        } catch (err) {
+          alert(err.message);
+          return;
+        }
+      }
+    }
+
+    pushUndoSnapshot();
+
+    const startD = new Date(startStr + 'T00:00:00');
+    const endD = new Date(endStr + 'T00:00:00');
+
+    for (let d = new Date(startD); d <= endD; d.setDate(d.getDate() + 1)) {
+      const dayOfWeek = d.getDay();
+      const diffToMon = (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
+      const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diffToMon);
+      mon.setHours(0, 0, 0, 0);
+      const wkKey = formatDateISO(mon);
+      const dayIdx = (dayOfWeek === 0 ? 6 : dayOfWeek - 1);
+
+      ensureWeekSchedule(wkKey);
+      const cellObj = { shift: type, locked: true };
+      if (type === 'SICK' && pdfData) {
+        cellObj.pdf = pdfData;
+      }
+      state.schedules[wkKey][empId][dayIdx] = cellObj;
+    }
+
+    saveState();
+    closeAbsenceRangeModal();
+    renderAll();
+  }
+
+  // ====== RENDERING ======
+  function renderAll() {
+    renderRoleControls();
+    updateUndoButton();
+    const dates = getWeekDates();
+    const weekKey = formatDateISO(dates[0]);
+    ensureWeekSchedule(weekKey);
+
+    document.getElementById('weekLabel').textContent =
+      `Εβδομάδα: Δευ ${formatDateGR(dates[0])} – Κυρ ${formatDateGR(dates[6])}`;
+
+    renderScheduleTable(dates, weekKey);
+    renderCoverageTable(dates, weekKey);
+    renderAlerts(dates, weekKey);
+    renderEmployeesTable();
+  }
+
+  function renderScheduleTable(dates, weekKey) {
+    const table = document.getElementById('scheduleTable');
+    const weekData = state.schedules[weekKey];
+    const flags = ensureDayFlags(weekKey);
+
+    let thead = `<thead><tr>
+      <th style="text-align:left; min-width:220px;">Εργαζόμενος / Άδειες</th>
+      ${dates.map((d, i) => {
+        const meta = getDayLoadMeta(weekKey, i);
+        const flagged = !!flags[i];
+        return `<th class="${meta.colCls} ${i === 6 ? 'sun-col' : ''}">
+          <div class="day-header-top">
+            <div>${DAYS_GR[i]} <span style="font-weight:400; color:var(--muted);">${formatDateGR(d)}</span></div>
+            <span class="day-load-pill ${meta.pillCls}">${meta.text}</span>
+            <button type="button" class="btn-flag-day ${flagged ? 'flagged' : ''}" onclick="toggleHolidayFlag(${i})" title="Σήμανση ημέρας ως αργία / έκτακτος φόρτος">
+              ${flagged ? '🎉 Αργία/Φόρτος ON' : '🎉 Αργία/Φόρτος'}
+            </button>
+          </div>
+        </th>`;
+      }).join('')}
+      <th>Ώρες / Μέρες</th>
+      <th>Κυριακές Μήνα</th>
+    </tr></thead>`;
+
+    if (state.employees.length === 0) {
+      table.innerHTML = thead + `<tbody><tr><td colspan="10" style="padding:28px; color:var(--muted);">
+        Δεν υπάρχουν εργαζόμενοι ακόμα. Πάτα <b>«🧪 Φόρτωση Δοκιμαστικής Ομάδας»</b> πάνω δεξιά ή πρόσθεσε άτομα στην καρτέλα <b>«Εργαζόμενοι, Ειδικότητες, Άδειες & Ρεπό»</b>.
+      </td></tr></tbody>`;
+      return;
+    }
+
+    let tbody = '<tbody>' + state.employees.map(emp => {
+      const row = weekData[emp.id];
+      let workDays = 0;
+      let totalHours = 0;
+
+      const cellsHtml = row.map((cell, d) => {
+        const sh = resolveShift(cell);
+        if (sh.start !== null) {
+          workDays++;
+          totalHours += getEmpWorkedHoursForCell(emp, cell);
+        }
+
+        let hasRestWarn = false;
+        if (d > 0 && sh.start !== null) {
+          const prev = resolveShift(row[d - 1]);
+          if (prev && prev.end !== null && ((24 - prev.end) + sh.start) < 11) {
+            hasRestWarn = true;
+          }
+        }
+
+        const pdfHtml = (cell.shift === 'SICK' && cell.pdf)
+          ? `<span class="pdf-badge" title="Προβολή PDF: ${cell.pdf.name}" onclick="viewPdf(event, '${cell.pdf.dataUrl}', '${cell.pdf.name.replace(/'/g, "\\'")}')">📄 PDF</span>`
+          : '';
+
+        const meta = getDayLoadMeta(weekKey, d);
+
+        return `<td class="shift-cell ${meta.colCls} ${d === 6 ? 'sun-col' : ''}" onclick="openCellModal('${emp.id}', ${d})">
+          ${cell.locked ? '<span class="lock-icon" title="Κλειδωμένο">🔒</span>' : ''}
+          <span class="shift-badge ${sh.cls}">${sh.label}</span>
+          ${pdfHtml}
+          ${hasRestWarn ? '<span class="warn-dot" title="Κάτω από 11 ώρες ανάπαυση">⚠️ &lt;11ω</span>' : ''}
+        </td>`;
+      }).join('');
+
+      const targetHours = Number(emp.daysPerWeek) * Number(emp.shiftHours || 8);
+      const overDays = workDays > Number(emp.daysPerWeek);
+      const overHours = totalHours > targetHours;
+      const sunCount = countWorkedSundaysInMonth(emp.id, dates[6]);
+      const sunWarn = sunCount > 2;
+      const allRoles = getEmpRoles(emp);
+      const leaveStats = getLeaveStats(emp.id);
+
+      return `<tr>
+        <td class="emp-cell">
+          <div class="emp-name">${emp.name}</div>
+          <div class="emp-meta">${allRoles.join(' / ')} • ${emp.daysPerWeek}μ × ${emp.shiftHours || 8}ω</div>
+          <span class="tag-leave-bal">🏖️ Υπόλοιπο άδειας: ${leaveStats.remaining}/${leaveStats.quota}</span>
+          ${emp.fixedShift ? `<span class="tag-fixed">📌 ${BASE_SHIFTS[emp.fixedShift]?.label || emp.fixedShift}</span>` : ''}
+        </td>
+        ${cellsHtml}
+        <td>
+          <b style="color:${(overDays || overHours) ? 'var(--red)' : 'var(--text)'}">${totalHours}ω / ${targetHours}ω</b>
+          <div style="font-size:0.75rem; color:${overDays ? 'var(--red)' : 'var(--muted)'}">
+            (${workDays}/${emp.daysPerWeek} μέρες)
+          </div>
+        </td>
+        <td>
+          <span style="font-weight:700; color:${sunWarn ? 'var(--red)' : 'var(--green)'}">
+            ${sunCount} / 2
+          </span>
+          <div style="font-size:0.72rem; color:var(--muted);">
+            ${sunWarn ? '⚠️ Υπέρβαση' : 'Εντός ορίου'}
+          </div>
+        </td>
+      </tr>`;
+    }).join('') + '</tbody>';
+
+    table.innerHTML = thead + tbody;
+  }
+
+  function renderCoverageTable(dates, weekKey) {
+    const table = document.getElementById('coverageTable');
+    const weekData = state.schedules[weekKey];
+
+    let thead = `<thead><tr>
+      <th style="text-align:left;">Βάρδια / Πόστο / Ειδικότητα</th>
+      ${DAYS_GR.map((d, i) => `<th class="${i === 6 ? 'sun-col' : ''}">${d}</th>`).join('')}
+    </tr></thead>`;
+
+    let tbody = '<tbody>' + DAILY_REQUIREMENTS.map(req => {
+      const cols = Array.from({ length: 7 }, (_, d) => {
+        const count = state.employees.filter(emp => {
+          const s = resolveShift(weekData[emp.id]?.[d]);
+          if (!s || s.start === null) return false;
+          if (s.code === req.shiftCode) return true;
+          return s.station === req.station && getEmpRoles(emp).includes(req.role);
+        }).length;
+
+        const ok = count >= req.need;
+        return `<td class="${d === 6 ? 'sun-col' : ''}" style="font-weight:700; color:${ok ? 'var(--green)' : 'var(--red)'};">
+          ${count} / ${req.need} ${ok ? '✅' : '⚠️'}
+        </td>`;
+      }).join('');
+
+      return `<tr><td style="text-align:left; font-weight:600;">${req.label}</td>${cols}</tr>`;
+    }).join('') + '</tbody>';
+
+    table.innerHTML = thead + tbody;
+  }
+
+  function renderAlerts(dates, weekKey) {
+    const box = document.getElementById('alertsBox');
+    const weekData = state.schedules[weekKey];
+    let missingSlots = 0;
+    let sunViolations = [];
+    let leaveOverused = [];
+
+    for (let d = 0; d < 7; d++) {
+      DAILY_REQUIREMENTS.forEach(req => {
+        const count = state.employees.filter(emp => {
+          const s = resolveShift(weekData[emp.id]?.[d]);
+          if (!s || s.start === null) return false;
+          if (s.code === req.shiftCode) return true;
+          return s.station === req.station && getEmpRoles(emp).includes(req.role);
+        }).length;
+        if (count < req.need) missingSlots += (req.need - count);
+      });
+    }
+
+    state.employees.forEach(emp => {
+      if (countWorkedSundaysInMonth(emp.id, dates[6]) > 2) sunViolations.push(emp.name);
+      const st = getLeaveStats(emp.id);
+      if (st.remaining < 0) leaveOverused.push(`${emp.name} (${st.remaining})`);
+    });
+
+    const flaggedDays = ensureDayFlags(weekKey)
+      .map((f, idx) => f ? DAYS_GR[idx] : null)
+      .filter(Boolean);
+
+    box.innerHTML = `
+      <div class="alert-item ${missingSlots === 0 ? 'alert-ok' : 'alert-warn'}">
+        <b>Κάλυψη Βαρδιών (12/μέρα):</b> ${missingSlots === 0 ? 'Πλήρης κάλυψη όλη την εβδομάδα!' : `Λείπουν ${missingSlots} βάρδιες συνολικά.`}
+      </div>
+      <div class="alert-item alert-ok">
+        <b>Απαιτητικές / Αργίες:</b> Σάββατο (μέγιστη), Παρασκευή &amp; Κυριακή${flaggedDays.length > 0 ? ` + <b>${flaggedDays.join(', ')}</b>` : ''}.
+      </div>
+      <div class="alert-item ${(sunViolations.length === 0 && leaveOverused.length === 0) ? 'alert-ok' : 'alert-warn'}">
+        <b>Κυριακές &amp; Άδειες:</b> ${
+          (sunViolations.length === 0 && leaveOverused.length === 0)
+            ? 'Όλοι εντός ορίων Κυριακών (max 2) & αδειών.'
+            : [sunViolations.length ? `Κυριακές: ${sunViolations.join(', ')}` : '', leaveOverused.length ? `Άδειες: ${leaveOverused.join(', ')}` : ''].filter(Boolean).join(' • ')
+        }
+      </div>
+    `;
+  }
+
+  function renderEmployeesTable() {
+    document.getElementById('empCount').textContent = state.employees.length;
+    const table = document.getElementById('empTable');
+
+    let thead = `<thead><tr>
+      <th style="text-align:left;">Ονοματεπώνυμο</th>
+      <th>Ειδικότητες</th>
+      <th>Σύμβαση</th>
+      <th>Άδειες (Υπόλοιπο / Σύνολο)</th>
+      <th>Στάνταρ Ρεπό</th>
+      <th>Ενέργειες</th>
+    </tr></thead>`;
+
+    if (state.employees.length === 0) {
+      table.innerHTML = thead + `<tbody><tr><td colspan="6" style="padding:20px; color:var(--muted);">Δεν έχουν καταχωρηθεί εργαζόμενοι.</td></tr></tbody>`;
+      return;
+    }
+
+    let tbody = '<tbody>' + state.employees.map(emp => {
+      const offNames = (emp.fixedOffDays || []).map(d => DAYS_GR[Number(d)]).join(', ');
+      const st = getLeaveStats(emp.id);
+      return `<tr>
+        <td style="text-align:left; font-weight:700;">${emp.name}</td>
+        <td>${getEmpRoles(emp).join(' / ')}</td>
+        <td>${emp.daysPerWeek}μ × ${emp.shiftHours || 8}ω</td>
+        <td>
+          <b style="color:${st.remaining < 0 ? 'var(--red)' : 'var(--blue)'}">${st.remaining}</b> / ${st.quota} μέρες
+          <div style="font-size:0.72rem; color:var(--muted);">Χρησιμοποιημένες: ${st.usedLeave} • Αναρρωτικές: ${st.sickDays}</div>
+        </td>
+        <td>${offNames ? `<b>${offNames}</b> (${(emp.fixedOffDays || []).length})` : '—'}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn-outline btn-sm" onclick="openEmpEditModal('${emp.id}')">✏️ Επεξεργασία</button>
+          <button class="btn-danger btn-sm" onclick="deleteEmployee('${emp.id}')">Διαγραφή</button>
+        </td>
+      </tr>`;
+    }).join('') + '</tbody>';
+
+    table.innerHTML = thead + tbody;
+  }
+
+  function seedDemoData() {
+    if (state.employees.length > 0 && !confirm('Θα φορτωθεί δοκιμαστική ομάδα. Συνέχεια;')) {
+      return;
+    }
+    pushUndoSnapshot();
+    state.roles = ['Barista', 'Ταμίας', 'Βοηθός Κουζίνας', 'Ζυμωτής'];
+    state.employees = [
+      { id: 'd1',  name: 'Γιώργος Κ.',    role: 'Barista',         extraRoles: ['Ταμίας'],          daysPerWeek: 5, shiftHours: 8, leaveQuota: 21, prefStation: 'coffee1',  fixedShift: 'p1_bar_early', fixedOffDays: [6] },
+      { id: 'd2',  name: 'Μαρία Π.',      role: 'Barista',         extraRoles: ['Ταμίας'],          daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'coffee1',  fixedShift: '',             fixedOffDays: [1, 2] },
+      { id: 'd3',  name: 'Κώστας Δ.',     role: 'Barista',         extraRoles: [],                  daysPerWeek: 5, shiftHours: 4, leaveQuota: 18, prefStation: 'coffee1',  fixedShift: '',             fixedOffDays: [0, 3] },
+      { id: 'd4',  name: 'Ελένη Σ.',      role: 'Barista',         extraRoles: ['Ταμίας'],          daysPerWeek: 5, shiftHours: 8, leaveQuota: 15, prefStation: 'coffee1',  fixedShift: '',             fixedOffDays: [] },
+      { id: 'd5',  name: 'Δημήτρης Λ.',   role: 'Barista',         extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'coffee2',  fixedShift: '',             fixedOffDays: [] },
+      { id: 'd6',  name: 'Νίκος Μ.',      role: 'Barista',         extraRoles: ['Ταμίας'],          daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'coffee1',  fixedShift: '',             fixedOffDays: [] },
+      { id: 'd7',  name: 'Άννα Τ.',       role: 'Ταμίας',          extraRoles: ['Barista'],         daysPerWeek: 5, shiftHours: 8, leaveQuota: 22, prefStation: 'coffee1',  fixedShift: '',             fixedOffDays: [0, 3] },
+      { id: 'd8',  name: 'Σοφία Β.',      role: 'Ταμίας',          extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'coffee2',  fixedShift: '',             fixedOffDays: [2, 4] },
+      { id: 'd9',  name: 'Πέτρος Α.',     role: 'Ταμίας',          extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'coffee1',  fixedShift: '',             fixedOffDays: [] },
+      { id: 'd10', name: 'Χρήστος Γ.',    role: 'Ταμίας',          extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'coffee2',  fixedShift: '',             fixedOffDays: [] },
+      { id: 'd11', name: 'Βασίλης Ν.',    role: 'Βοηθός Κουζίνας', extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'sandwich', fixedShift: '',             fixedOffDays: [] },
+      { id: 'd12', name: 'Τάκης Ζ.',      role: 'Βοηθός Κουζίνας', extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 16, prefStation: 'sandwich', fixedShift: '',             fixedOffDays: [1, 3] },
+      { id: 'd13', name: 'Κατερίνα Ρ.',   role: 'Βοηθός Κουζίνας', extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'prep',     fixedShift: '',             fixedOffDays: [] },
+      { id: 'd14', name: 'Μιχάλης Θ.',    role: 'Βοηθός Κουζίνας', extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'sandwich', fixedShift: '',             fixedOffDays: [] },
+      { id: 'd15', name: 'Στέφανος Ο.',   role: 'Ζυμωτής',         extraRoles: ['Βοηθός Κουζίνας'], daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'dough',    fixedShift: 'dough_late',   fixedOffDays: [] },
+      { id: 'd16', name: 'Λία Χ.',        role: 'Ζυμωτής',         extraRoles: [],                  daysPerWeek: 5, shiftHours: 8, leaveQuota: 20, prefStation: 'dough',    fixedShift: '',             fixedOffDays: [0, 2] }
+    ];
+    state.schedules = {};
+    state.dayFlags = {};
+    ensureWeekSchedule();
+    saveState();
+    renderAll();
+  }
+
+  function resetAllData() {
+    if (!confirm('Να διαγραφούν όλα τα δοκιμαστικά δεδομένα του Bakshifts v9;')) return;
+    localStorage.removeItem('bakshifts_v9');
+    localStorage.removeItem('bakshifts_v8');
+    localStorage.removeItem('bakshifts_v7');
+    localStorage.removeItem('bakshifts_v6');
+    undoStack = [];
+    state = {
+      weekOffset: 0,
+      roles: ['Barista', 'Ταμίας', 'Βοηθός Κουζίνας', 'Ζυμωτής'],
+      employees: [],
+      schedules: {},
+      dayFlags: {}
+    };
+    renderAll();
+  }
+
+  loadState();
+  renderAll();
+</script>
+</body>
+</html>
