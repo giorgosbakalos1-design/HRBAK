@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bakshifts — Διαχείριση Βαρδιών</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #1e293b;
+      --accent: #d97706;
+      --accent-hover: #b45309;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+    }
+    .badge-beta {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.15s;
+    }
+    button:active { transform: scale(0.98); }
+    .btn-accent { background: var(--accent); color: #fff; }
+    .btn-accent:hover { background: var(--accent-hover); }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-blue:hover { background: #1d4ed8; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-outline:hover { background: #f8fafc; }
+    .btn-dark { background: rgba(255,255,255,0.12); color: #fff; }
+    .btn-dark:hover { background: rgba(255,255,255,0.22); }
+    .btn-danger { background: #fee2e2; color: var(--red); }
+    .btn-sm { padding: 5px 9px; font-size: 0.78rem; }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #fff;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .week-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .week-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    /* Alerts & Coverage */
+    .alerts-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .alert-item {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      border-left: 4px solid;
+    }
+    .alert-ok { background: #f0fdf4; border-color: var(--green); color: #166534; }
+    .alert-warn { background: #fef2f2; border-color: var(--red); color: #991b1b; }
+    .alert-info { background: #eff6ff; border-color: var(--blue); color: #1e40af; }
+
+    /* Schedule Table */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1050px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: center;
+      vertical-align: middle;
+    }
+    th {
+      background: #f8fafc;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+    th.sun-col, td.sun-col {
+      background: #fffbeb;
+    }
+    td.emp-cell {
+      text-align: left;
+      min-width: 185px;
+      background: #fff;
+      position: sticky;
+      left: 0;
+      z-index: 5;
+    }
+    .emp-name { font-weight: 700; font-size: 0.92rem; }
+    .emp-meta { font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
+    .tag-fixed {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      margin-top: 3px;
+    }
+
+    .shift-cell {
+      cursor: pointer;
+      min-width: 118px;
+      transition: background 0.12s;
+      position: relative;
+    }
+    .shift-cell:hover { background: #f1f5f9; }
+    .shift-badge {
+      display: block;
+      padding: 6px 6px;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+    .sh-coffee1 { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+    .sh-coffee2 { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+    .sh-sandwich { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .sh-dough { background: #e0e7ff; color: #3730a3; border: 1px solid #a5b4fc; }
+    .sh-off { background: #f1f5f9; color: #64748b; }
+    .sh-leave { background: #fee2e2; color: #991b1b; }
+
+    .lock-icon {
+      position: absolute;
+      top: 3px;
+      right: 4px;
+      font-size: 0.72rem;
+    }
+    .warn-dot {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 0.68rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-top: 3px;
+    }
+
+    /* Form Grid */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #334155;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      background: #fff;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      max-width: 440px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 35px rgba(0,0,0,0.25);
+    }
+    .modal h3 { margin: 0 0 12px; font-size: 1.08rem; }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Print Mode */
+    @media print {
+      header, .tabs, .no-print { display: none !important; }
+      body { background: #fff; }
+      .card { border: none; box-shadow: none; padding: 0; }
+      .table-wrap { border: 1px solid #000; }
+      th, td { border: 1px solid #444; font-size: 11px; padding: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <h1>☕ Bakshifts</h1>
+    <span class="badge-beta">Δοκιμαστικό Περιβάλλον</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-dark" onclick="seedDemoData()">🧪 Φόρτωση Δοκιμαστικής Ομάδας</button>
+    <button class="btn-dark" onclick="window.print()">🖨️ Εκτύπωση / PDF</button>
+    <button class="btn-dark" onclick="resetAllData()">🗑️ Καθαρισμός</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-btn-schedule" onclick="switchTab('schedule')">📅 Εβδομαδιαίο Πρόγραμμα</button>
+    <button class="tab-btn" id="tab-btn-employees" onclick="switchTab('employees')">👥 Εργαζόμενοι & Στάνταρ Ωράρια</button>
+    <button class="tab-btn" id="tab-btn-rules" onclick="switchTab('rules')">⚙️ Πόστα & Κανόνες Καταστήματος</button>
+  </div>
+
+  <!-- TAB 1: SCHEDULE -->
+  <div id="tab-schedule">
+    <div class="card">
+      <div class="week-bar">
+        <div class="week-nav">
+          <button class="btn-outline btn-sm" onclick="changeWeek(-1)">◀ Προηγούμενη</button>
+          <span class="week-title" id="weekLabel">Εβδομάδα</span>
+          <button class="btn-outline btn-sm" onclick="changeWeek(1)">Επόμενη ▶</button>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn-outline" onclick="copyPreviousWeek()">📋 Αντιγραφή Προηγούμενης</button>
+          <button class="btn-accent" onclick="runShuffle()">🎲 Shuffle Εβδομάδας (Έξυπνο)</button>
+        </div>
+      </div>
+
+      <div class="alerts-box" id="alertsBox"></div>
+    </div>
+
+    <div class="card" style="padding:10px;">
+      <div class="table-wrap">
+        <table id="scheduleTable"></table>
+      </div>
+      <div style="margin-top:10px; font-size:0.8rem; color:var(--muted); display:flex; flex-wrap:wrap; gap:14px;">
+        <span>💡 <b>Κλικ σε κελί:</b> Αλλαγή βάρδιας ή κλείδωμα 🔒</span>
+        <span>🔒 <b>Κλειδωμένο / Στάνταρ:</b> Δεν αλλάζει στο Shuffle</span>
+        <span>☀️ <b>Κυριακές Μήνα:</b> Μέγιστο 2 εργάσιμες Κυριακές/μήνα (τουλ. 2 ρεπό)</span>
+      </div>
+    </div>
+
+    <!-- Daily Staffing Summary -->
+    <div class="card">
+      <h3 style="margin:0 0 10px; font-size:1rem;">📊 Έλεγχος Κάλυψης Πόστων ανά Ημέρα (07:00 – 21:30)</h3>
+      <div class="table-wrap">
+        <table id="coverageTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: EMPLOYEES -->
+  <div id="tab-employees" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 12px; font-size:1.05rem;">➕ Προσθήκη Εργαζομένου</h3>
+      <form id="empForm" class="form-grid" autocomplete="off" onsubmit="addEmployee(event)">
+        <div>
+          <label>Ονοματεπώνυμο</label>
+          <input type="text" id="empName" required placeholder="π.χ. Νίκος Παπαδόπουλος" />
+        </div>
+        <div>
+          <label>Ειδικότητα</label>
+          <select id="empRole" required>
+            <option value="Barista">Barista</option>
+            <option value="Ταμίας">Ταμίας</option>
+            <option value="Βοηθός Κουζίνας">Βοηθός Κουζίνας</option>
+          </select>
+        </div>
+        <div>
+          <label>Σύμβαση (Μέρες/Εβδ.)</label>
+          <select id="empDays">
+            <option value="5">5ήμερο (40 ώρες)</option>
+            <option value="6">6ήμερο (48 ώρες)</option>
+          </select>
+        </div>
+        <div>
+          <label>Προτιμώμενο Πόστο</label>
+          <select id="empPrefStation">
+            <option value="any">Οποιοδήποτε (βάσει ειδικότητας)</option>
+            <option value="coffee1">Καφές - Πόστο 1 (07:00-16:30)</option>
+            <option value="coffee2">Καφές - Πόστο 2 (09:00-19:30)</option>
+            <option value="sandwich">Σάντουιτς (09:30-21:30)</option>
+            <option value="dough">Ζυμωτής (13:30-21:30)</option>
+          </select>
+        </div>
+        <div>
+          <label>Στάνταρ Ωράριο (Κλειδωμένο στο Shuffle)</label>
+          <select id="empFixedShift">
+            <option value="">Όχι (Ελεύθερο στο Shuffle)</option>
+            <option value="coffee1_early">Καφές Πόστο 1 — 07:00-15:00</option>
+            <option value="coffee1_late">Καφές Πόστο 1 — 08:30-16:30</option>
+            <option value="coffee2_early">Καφές Πόστο 2 — 09:00-17:00</option>
+            <option value="coffee2_late">Καφές Πόστο 2 — 11:30-19:30</option>
+            <option value="sandwich_early">Σάντουιτς — 09:30-17:30</option>
+            <option value="sandwich_late">Σάντουιτς — 13:30-21:30</option>
+            <option value="dough_main">Ζυμωτής — 13:30-21:30</option>
+          </select>
+        </div>
+        <div>
+          <label>Σταθερά Ρεπό (προαιρετικό)</label>
+          <select id="empFixedOff">
+            <option value="">Κανένα σταθερό</option>
+            <option value="0">Δευτέρα</option>
+            <option value="1">Τρίτη</option>
+            <option value="2">Τετάρτη</option>
+            <option value="3">Πέμπτη</option>
+            <option value="4">Παρασκευή</option>
+            <option value="5">Σάββατο</option>
+            <option value="6">Κυριακή</option>
+          </select>
+        </div>
+        <div>
+          <button type="submit" class="btn-green" style="width:100%; justify-content:center;">Προσθήκη</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 12px; font-size:1.05rem;">📋 Λίστα Προσωπικού (<span id="empCount">0</span>)</h3>
+      <div class="table-wrap">
+        <table id="empTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: RULES & STATIONS -->
+  <div id="tab-rules" class="hidden">
+    <div class="card">
+      <h3 style="margin:0 0 10px;">🏪 Διαμόρφωση Πόστων & Κλιμακωτών 8ωρων (07:00 – 21:30)</h3>
+      <p style="font-size:0.88rem; color:var(--muted); margin-top:0;">
+        Όλες οι βάρδιες είναι <b>αυστηρά 8ωρες</b> και καλύπτουν κλιμακωτά τα ωράρια λειτουργίας κάθε πόστου:
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Πόστο / Τμήμα</th>
+              <th>Ωράριο Πόστου</th>
+              <th>Κλιμακωτές 8ωρες Βάρδιες</th>
+              <th>Απαιτούμενο Προσωπικό / Ημέρα</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><b>☕ Καφές — Πόστο 1</b></td>
+              <td>07:00 – 16:30</td>
+              <td>07:00–15:00 &amp; 08:30–16:30</td>
+              <td>3 Barista + 1 Ταμίας (Σύνολο: 4)</td>
+            </tr>
+            <tr>
+              <td><b>☕ Καφές — Πόστο 2</b></td>
+              <td>09:00 – 19:30</td>
+              <td>09:00–17:00 &amp; 11:30–19:30</td>
+              <td>2 Barista + 1 Ταμίας (Σύνολο: 3)</td>
+            </tr>
+            <tr>
+              <td><b>🥪 Σάντουιτς</b></td>
+              <td>09:30 – 21:30</td>
+              <td>09:30–17:30 &amp; 13:30–21:30</td>
+              <td>2 Βοηθοί Κουζίνας (1 πρωί + 1 βράδυ)</td>
+            </tr>
+            <tr>
+              <td><b>🥖 Ζυμωτής</b></td>
+              <td>13:30 – 21:30</td>
+              <td>13:30–21:30</td>
+              <td>1 Βοηθός Κουζίνας</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px;">⚖️ Ενεργοί Κανόνες Ελέγχου & Shuffle</h3>
+      <ul style="font-size:0.9rem; line-height:1.7; margin:0; padding-left:20px;">
+        <li><b>Αυστηρό 8ωρο:</b> Καμία βάρδια δεν ξεπερνά τις 8 ώρες.</li>
+        <li><b>Νομοθεσία Κυριακών (2 Κυριακές ρεπό / μήνα):</b> Το σύστημα μετρά πόσες Κυριακές εργάζεται κάθε άτομο στον ημερολογιακό μήνα (max 2 εργάσιμες Κυριακές/μήνα).</li>
+        <li><b>11ωρη Υποχρεωτική Ανάπαυση:</b> Απαγορεύεται/προειδοποιεί αν κάποιος τελειώσει 21:30 και μπει 07:00 ή 08:30 την επόμενη μέρα (9,5–11 ώρες κενό).</li>
+        <li><b>Στάνταρ / Κλειδωμένες Βάρδιες:</b> Όσοι έχουν στάνταρ ωράριο ή κλειδωμένο κελί παραμένουν ακλόνητοι στο Shuffle.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT CELL MODAL -->
+<div class="modal-backdrop" id="cellModal">
+  <div class="modal">
+    <h3 id="modalTitle">Επεξεργασία Βάρδιας</h3>
+    <div style="margin-bottom:12px;">
+      <label>Επιλογή Βάρδιας / Κατάστασης</label>
+      <select id="modalShiftSelect"></select>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <input type="checkbox" id="modalLockCheck" style="width:auto;" />
+      <label for="modalLockCheck" style="margin:0; cursor:pointer;">🔒 Κλείδωμα κελιού (να μην αλλάζει στο Shuffle)</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-outline" onclick="closeModal()">Άκυρο</button>
+      <button class="btn-blue" onclick="saveCellEdit()">Αποθήκευση</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ====== SHIFT DEFINITIONS (All strictly 8h) ======
+  const SHIFTS = {
+    OFF:            { code: 'OFF',            label: 'ΡΕΠΟ',                time: '',            start: null, end: null, station: null,       role: null,              cls: 'sh-off' },
+    LEAVE:          { code: 'LEAVE',          label: 'ΑΔΕΙΑ',               time: '',            start: null, end: null, station: null,       role: null,              cls: 'sh-leave' },
+    coffee1_early:  { code: 'coffee1_early',  label: 'Καφές Π1 • 07:00-15:00', time: '07:00-15:00', start: 7.0,  end: 15.0, station: 'coffee1',  role: 'Barista/Ταμίας',  cls: 'sh-coffee1' },
+    coffee1_late:   { code: 'coffee1_late',   label: 'Καφές Π1 • 08:30-16:30', time: '08:30-16:30', start: 8.5,  end: 16.5, station: 'coffee1',  role: 'Barista/Ταμίας',  cls: 'sh-coffee1' },
+    coffee2_early:  { code: 'coffee2_early',  label: 'Καφές Π2 • 09:00-17:00', time: '09:00-17:00', start: 9.0,  end: 17.0, station: 'coffee2',  role: 'Barista/Ταμίας',  cls: 'sh-coffee2' },
+    coffee2_late:   { code: 'coffee2_late',   label: 'Καφές Π2 • 11:30-19:30', time: '11:30-19:30', start: 11.5, end: 19.5, station: 'coffee2',  role: 'Barista/Ταμίας',  cls: 'sh-coffee2' },
+    sandwich_early: { code: 'sandwich_early', label: 'Σάντουιτς • 09:30-17:30', time: '09:30-17:30', start: 9.5,  end: 17.5, station: 'sandwich', role: 'Βοηθός Κουζίνας', cls: 'sh-sandwich' },
+    sandwich_late:  { code: 'sandwich_late',  label: 'Σάντουιτς • 13:30-21:30', time: '13:30-21:30', start: 13.5, end: 21.5, station: 'sandwich', role: 'Βοηθός Κουζίνας', cls: 'sh-sandwich' },
+    dough_main:     { code: 'dough_main',     label: 'Ζυμωτής • 13:30-21:30',  time: '13:30-21:30', start: 13.5, end: 21.5, station: 'dough',    role: 'Βοηθός Κουζίνας', cls: 'sh-dough' }
+  };
+
+  // Daily requirements per station & role
+  const DAILY_REQUIREMENTS = [
+    { id: 'c1_barista', label: 'Καφές Π1 — Barista (3)',   station: 'coffee1',  role: 'Barista',         need: 3 },
+    { id: 'c1_cashier', label: 'Καφές Π1 — Ταμίας (1)',    station: 'coffee1',  role: 'Ταμίας',          need: 1 },
+    { id: 'c2_barista', label: 'Καφές Π2 — Barista (2)',   station: 'coffee2',  role: 'Barista',         need: 2 },
+    { id: 'c2_cashier', label: 'Καφές Π2 — Ταμίας (1)',    station: 'coffee2',  role: 'Ταμίας',          need: 1 },
+    { id: 'sw_kitchen', label: 'Σάντουιτς — Κουζίνα (2)',  station: 'sandwich', role: 'Βοηθός Κουζίνας', need: 2 },
+    { id: 'dg_kitchen', label: 'Ζυμωτής — Κουζίνα (1)',    station: 'dough',    role: 'Βοηθός Κουζίνας', need: 1 }
+  ];
+
+  const DAYS_GR = ['Δευτέρα', 'Τρίτη', 'Τετάρτη', 'Πέμπτη', 'Παρασκευή', 'Σάββατο', 'Κυριακή'];
+
+  // ====== STATE ======
+  let state = {
+    weekOffset: 0, // 0 = current week (Monday start)
+    employees: [],
+    schedules: {}  // { "YYYY-MM-DD": { empId: [ {shift, locked}, ...7 ] } }
+  };
+
+  let editingCell = null;
+
+  function loadState() {
+    const saved = localStorage.getItem('bakshifts_v1');
+    if (saved) {
+      try { state = JSON.parse(saved); } catch (e) {}
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem('bakshifts_v1', JSON.stringify(state));
+  }
+
+  // ====== DATE HELPERS ======
+  function getMondayOfWeek(offset = 0) {
+    const now = new Date();
+    const day = now.getDay(); // 0=Sun, 1=Mon...
+    const diffToMon = (day === 0 ? -6 : 1 - day) + (offset * 7);
+    const mon = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diffToMon);
+    mon.setHours(0, 0, 0, 0);
+    return mon;
+  }
+
+  function formatDateISO(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function formatDateGR(d) {
+    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+  }
+
+  function getWeekDates(offset = state.weekOffset) {
+    const mon = getMondayOfWeek(offset);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(mon);
+      d.setDate(mon.getDate() + i);
+      return d;
+    });
+  }
+
+  function getCurrentWeekKey() {
+    return formatDateISO(getMondayOfWeek(state.weekOffset));
+  }
+
+  function ensureWeekSchedule(weekKey = getCurrentWeekKey()) {
+    if (!state.schedules[weekKey]) state.schedules[weekKey] = {};
+    state.employees.forEach(emp => {
+      if (!state.schedules[weekKey][emp.id]) {
+        state.schedules[weekKey][emp.id] = Array.from({ length: 7 }, (_, dayIdx) => {
+          if (emp.fixedOff !== '' && Number(emp.fixedOff) === dayIdx) {
+            return { shift: 'OFF', locked: true };
+          }
+          if (emp.fixedShift) {
+            return { shift: emp.fixedShift, locked: true };
+          }
+          return { shift: 'OFF', locked: false };
+        });
+      }
+    });
+  }
+
+  // Count how many Sundays an employee works in the same calendar month as targetSundayDate
+  function countWorkedSundaysInMonth(empId, targetSundayDate) {
+    const targetMonth = targetSundayDate.getMonth();
+    const targetYear = targetSundayDate.getFullYear();
+    let count = 0;
+
+    // Check +/- 5 weeks around current
+    for (let w = -5; w <= 5; w++) {
+      const dates = getWeekDates(state.weekOffset + w);
+      const sun = dates[6];
+      if (sun.getMonth() === targetMonth && sun.getFullYear() === targetYear) {
+        const wKey = formatDateISO(dates[0]);
+        const entry = state.schedules[wKey]?.[empId]?.[6];
+        if (entry && entry.shift !== 'OFF' && entry.shift !== 'LEAVE') {
+          count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  // ====== TABS & NAVIGATION ======
+  function switchTab(tab) {
+    ['schedule', 'employees', 'rules'].forEach(t => {
+      document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+      document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
+    });
+    renderAll();
+  }
+
+  function changeWeek(delta) {
+    state.weekOffset += delta;
+    saveState();
+    renderAll();
+  }
+
+  function copyPreviousWeek() {
+    const prevKey = formatDateISO(getMondayOfWeek(state.weekOffset - 1));
+    const currKey = getCurrentWeekKey();
+    if (!state.schedules[prevKey]) {
+      alert('Δεν υπάρχει αποθηκευμένο πρόγραμμα στην προηγούμενη εβδομάδα.');
+      return;
+    }
+    state.schedules[currKey] = JSON.parse(JSON.stringify(state.schedules[prevKey]));
+    saveState();
+    renderAll();
+  }
+
+  // ====== EMPLOYEES CRUD ======
+  function addEmployee(e) {
+    e.preventDefault();
+    const emp = {
+      id: 'emp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+      name: document.getElementById('empName').value.trim(),
+      role: document.getElementById('empRole').value,
+      daysPerWeek: Number(document.getElementById('empDays').value),
+      prefStation: document.getElementById('empPrefStation').value,
+      fixedShift: document.getElementById('empFixedShift').value,
+      fixedOff: document.getElementById('empFixedOff').value
+    };
+    state.employees.push(emp);
+    document.getElementById('empForm').reset();
+    ensureWeekSchedule();
+    saveState();
+    renderAll();
+  }
+
+  function deleteEmployee(id) {
+    if (!confirm('Διαγραφή εργαζομένου από το πρόγραμμα;')) return;
+    state.employees = state.employees.filter(e => e.id !== id);
+    Object.keys(state.schedules).forEach(wk => delete state.schedules[wk][id]);
+    saveState();
+    renderAll();
+  }
+
+  function toggleEmpFixed(id) {
+    const emp = state.employees.find(e => e.id === id);
+    if (!emp) return;
+    const options = Object.keys(SHIFTS).filter(k => k !== 'OFF' && k !== 'LEAVE');
+    const idx = options.indexOf(emp.fixedShift);
+    emp.fixedShift = idx === -1 ? options[0] : (idx + 1 < options.length ? options[idx + 1] : '');
+    // Update unlocked cells in current week if fixedShift set
+    const wk = getCurrentWeekKey();
+    ensureWeekSchedule(wk);
+    if (emp.fixedShift) {
+      for (let d = 0; d < 7; d++) {
+        if (emp.fixedOff !== '' && Number(emp.fixedOff) === d) continue;
+        state.schedules[wk][emp.id][d] = { shift: emp.fixedShift, locked: true };
+      }
+    }
+    saveState();
+    renderAll();
+  }
+
+  // ====== SMART SHUFFLE ENGINE ======
+  function runShuffle() {
+    if (state.employees.length === 0) {
+      alert('Πρόσθεσε πρώτα εργαζομένους (ή πάτα «Φόρτωση Δοκιμαστικής Ομάδας» πάνω δεξιά).');
+      return;
+    }
+
+    const dates = getWeekDates();
+    const weekKey = formatDateISO(dates[0]);
+    ensureWeekSchedule(weekKey);
+    const weekData = state.schedules[weekKey];
+
+    // 1. Reset all NON-LOCKED cells to OFF, keep locked / fixed shifts intact
+    state.employees.forEach(emp => {
+      for (let d = 0; d < 7; d++) {
+        const cell = weekData[emp.id][d];
+        if (emp.fixedOff !== '' && Number(emp.fixedOff) === d) {
+          weekData[emp.id][d] = { shift: 'OFF', locked: true };
+        } else if (emp.fixedShift) {
+          weekData[emp.id][d] = { shift: emp.fixedShift, locked: true };
+        } else if (!cell.locked) {
+          weekData[emp.id][d] = { shift: 'OFF', locked: false };
+        }
+      }
+    });
+
+    // Helper: count assigned workdays this week for emp
+    const getWorkDays = (empId) =>
+      weekData[empId].filter(c => c.shift !== 'OFF' && c.shift !== 'LEAVE').length;
+
+    // Helper: check 11h rest from previous day
+    const hasEnoughRest = (empId, dayIdx, candidateShiftCode) => {
+      if (dayIdx === 0) return true;
+      const prevShiftCode = weekData[empId][dayIdx - 1].shift;
+      const prev = SHIFTS[prevShiftCode];
+      const next = SHIFTS[candidateShiftCode];
+      if (!prev || prev.end === null || !next || next.start === null) return true;
+      const restHours = (24 - prev.end) + next.start;
+      return restHours >= 11;
+    };
+
+    // Helper: choose staggered 8h shift code for a station & current filled count
+    const pickShiftForSlot = (station, slotIndex) => {
+      if (station === 'coffee1') return slotIndex % 2 === 0 ? 'coffee1_early' : 'coffee1_late';
+      if (station === 'coffee2') return slotIndex % 2 === 0 ? 'coffee2_early' : 'coffee2_late';
+      if (station === 'sandwich') return slotIndex === 0 ? 'sandwich_early' : 'sandwich_late';
+      if (station === 'dough') return 'dough_main';
+      return 'OFF';
+    };
+
+    // 2. Fill day by day (Sunday handled with monthly Sunday cap <= 2)
+    // Process Sunday first or in order while respecting Sunday cap! Processing Sunday early ensures fair Sunday distribution.
+    const dayOrder = [6, 0, 1, 2, 3, 4, 5];
+
+    dayOrder.forEach(d => {
+      const currentDate = dates[d];
+      const isSunday = (d === 6);
+
+      DAILY_REQUIREMENTS.forEach(req => {
+        // Count already assigned (locked) employees for this station & role today
+        let alreadyAssigned = state.employees.filter(emp => {
+          const s = SHIFTS[weekData[emp.id][d].shift];
+          return s && s.station === req.station && emp.role === req.role;
+        });
+
+        let needed = req.need - alreadyAssigned.length;
+        if (needed <= 0) return;
+
+        // Find eligible candidates currently OFF & unlocked today
+        let candidates = state.employees.filter(emp => {
+          if (emp.role !== req.role) return false;
+          const cell = weekData[emp.id][d];
+          if (cell.locked || cell.shift !== 'OFF') return false;
+          if (getWorkDays(emp.id) >= emp.daysPerWeek) return false;
+          if (isSunday && countWorkedSundaysInMonth(emp.id, currentDate) >= 2) return false;
+          return true;
+        });
+
+        // Shuffle + sort by preference & fewest days worked so far
+        candidates.sort(() => Math.random() - 0.5);
+        candidates.sort((a, b) => {
+          const aPref = (a.prefStation === req.station) ? -1 : 0;
+          const bPref = (b.prefStation === req.station) ? -1 : 0;
+          if (aPref !== bPref) return aPref - bPref;
+          if (isSunday) {
+            const aSun = countWorkedSundaysInMonth(a.id, currentDate);
+            const bSun = countWorkedSundaysInMonth(b.id, currentDate);
+            if (aSun !== bSun) return aSun - bSun;
+          }
+          return getWorkDays(a.id) - getWorkDays(b.id);
+        });
+
+        let slotCounter = alreadyAssigned.length;
+        for (const emp of candidates) {
+          if (needed <= 0) break;
+          let shiftCode = pickShiftForSlot(req.station, slotCounter);
+
+          // Check 11h rest; if early fails rest, try late shift of same station
+          if (!hasEnoughRest(emp.id, d, shiftCode)) {
+            const altCode = shiftCode.replace('_early', '_late');
+            if (SHIFTS[altCode] && hasEnoughRest(emp.id, d, altCode)) {
+              shiftCode = altCode;
+            } else {
+              continue; // skip to preserve 11h rest
+            }
+          }
+
+          weekData[emp.id][d] = { shift: shiftCode, locked: false };
+          slotCounter++;
+          needed--;
+        }
+      });
+    });
+
+    saveState();
+    renderAll();
+  }
+
+  // ====== CELL EDIT MODAL ======
+  function openCellModal(empId, dayIdx) {
+    const weekKey = getCurrentWeekKey();
+    ensureWeekSchedule(weekKey);
+    const emp = state.employees.find(e => e.id === empId);
+    const cell = state.schedules[weekKey][empId][dayIdx];
+
+    editingCell = { empId, dayIdx };
+    document.getElementById('modalTitle').textContent = `${emp.name} — ${DAYS_GR[dayIdx]}`;
+
+    const sel = document.getElementById('modalShiftSelect');
+    sel.innerHTML = Object.values(SHIFTS).map(s =>
+      `<option value="${s.code}" ${s.code === cell.shift ? 'selected' : ''}>${s.label}</option>`
+    ).join('');
+
+    document.getElementById('modalLockCheck').checked = !!cell.locked;
+    document.getElementById('cellModal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('cellModal').classList.remove('open');
+    editingCell = null;
+  }
+
+  function saveCellEdit() {
+    if (!editingCell) return;
+    const weekKey = getCurrentWeekKey();
+    const shift = document.getElementById('modalShiftSelect').value;
+    const locked = document.getElementById('modalLockCheck').checked;
+    state.schedules[weekKey][editingCell.empId][editingCell.dayIdx] = { shift, locked };
+    saveState();
+    closeModal();
+    renderAll();
+  }
+
+  // ====== RENDERING ======
+  function renderAll() {
+    const dates = getWeekDates();
+    const weekKey = formatDateISO(dates[0]);
+    ensureWeekSchedule(weekKey);
+
+    document.getElementById('weekLabel').textContent =
+      `Εβδομάδα: Δευ ${formatDateGR(dates[0])} – Κυρ ${formatDateGR(dates[6])}`;
+
+    renderScheduleTable(dates, weekKey);
+    renderCoverageTable(dates, weekKey);
+    renderAlerts(dates, weekKey);
+    renderEmployeesTable();
+  }
+
+  function renderScheduleTable(dates, weekKey) {
+    const table = document.getElementById('scheduleTable');
+    const weekData = state.schedules[weekKey];
+
+    let thead = `<thead><tr>
+      <th style="text-align:left; min-width:185px;">Εργαζόμενος / Ειδικότητα</th>
+      ${dates.map((d, i) => `
+        <th class="${i === 6 ? 'sun-col' : ''}">
+          ${DAYS_GR[i]}<br><span style="font-weight:400; color:var(--muted);">${formatDateGR(d)}</span>
+        </th>
+      `).join('')}
+      <th>Ώρες / Μέρες</th>
+      <th>Κυριακές Μήνα</th>
+    </tr></thead>`;
+
+    if (state.employees.length === 0) {
+      table.innerHTML = thead + `<tbody><tr><td colspan="10" style="padding:28px; color:var(--muted);">
+        Δεν υπάρχουν εργαζόμενοι ακόμα. Πάτα <b>«🧪 Φόρτωση Δοκιμαστικής Ομάδας»</b> πάνω δεξιά για άμεση δοκιμή του Shuffle, ή πρόσθεσε εργαζομένους στην καρτέλα <b>«Εργαζόμενοι»</b>.
+      </td></tr></tbody>`;
+      return;
+    }
+
+    let tbody = '<tbody>' + state.employees.map(emp => {
+      const row = weekData[emp.id];
+      let workDays = 0;
+      let restViolations = [];
+
+      const cellsHtml = row.map((cell, d) => {
+        const sh = SHIFTS[cell.shift] || SHIFTS.OFF;
+        if (sh.start !== null) workDays++;
+
+        // Check 11h rest
+        let hasRestWarn = false;
+        if (d > 0 && sh.start !== null) {
+          const prev = SHIFTS[row[d - 1].shift];
+          if (prev && prev.end !== null && ((24 - prev.end) + sh.start) < 11) {
+            hasRestWarn = true;
+            restViolations.push(DAYS_GR[d]);
+          }
+        }
+
+        return `<td class="shift-cell ${d === 6 ? 'sun-col' : ''}" onclick="openCellModal('${emp.id}', ${d})">
+          ${cell.locked ? '<span class="lock-icon" title="Κλειδωμένο">🔒</span>' : ''}
+          <span class="shift-badge ${sh.cls}">${sh.label}</span>
+          ${hasRestWarn ? '<span class="warn-dot" title="Κάτω από 11 ώρες ανάπαυση">⚠️ &lt;11ω</span>' : ''}
+        </td>`;
+      }).join('');
+
+      const totalHours = workDays * 8;
+      const overLimit = workDays > emp.daysPerWeek;
+      const sunCount = countWorkedSundaysInMonth(emp.id, dates[6]);
+      const sunWarn = sunCount > 2;
+
+      return `<tr>
+        <td class="emp-cell">
+          <div class="emp-name">${emp.name}</div>
+          <div class="emp-meta">${emp.role} • ${emp.daysPerWeek}ήμερο</div>
+          ${emp.fixedShift ? `<span class="tag-fixed">📌 Στάνταρ: ${SHIFTS[emp.fixedShift]?.time}</span>` : ''}
+        </td>
+        ${cellsHtml}
+        <td>
+          <b style="color:${overLimit ? 'var(--red)' : 'var(--text)'}">${totalHours}ω</b>
+          <div style="font-size:0.75rem; color:${overLimit ? 'var(--red)' : 'var(--muted)'}">
+            (${workDays}/${emp.daysPerWeek} μέρες)
+          </div>
+        </td>
+        <td>
+          <span style="font-weight:700; color:${sunWarn ? 'var(--red)' : 'var(--green)'}">
+            ${sunCount} / 2
+          </span>
+          <div style="font-size:0.72rem; color:var(--muted);">
+            ${sunWarn ? '⚠️ Υπέρβαση' : 'Εντός ορίου'}
+          </div>
+        </td>
+      </tr>`;
+    }).join('') + '</tbody>';
+
+    table.innerHTML = thead + tbody;
+  }
+
+  function renderCoverageTable(dates, weekKey) {
+    const table = document.getElementById('coverageTable');
+    const weekData = state.schedules[weekKey];
+
+    let thead = `<thead><tr>
+      <th style="text-align:left;">Πόστο & Απαιτούμενη Στελέχωση</th>
+      ${DAYS_GR.map((d, i) => `<th class="${i === 6 ? 'sun-col' : ''}">${d}</th>`).join('')}
+    </tr></thead>`;
+
+    let tbody = '<tbody>' + DAILY_REQUIREMENTS.map(req => {
+      const cols = Array.from({ length: 7 }, (_, d) => {
+        const count = state.employees.filter(emp => {
+          const s = SHIFTS[weekData[emp.id]?.[d]?.shift];
+          return s && s.station === req.station && emp.role === req.role;
+        }).length;
+
+        const ok = count >= req.need;
+        return `<td class="${d === 6 ? 'sun-col' : ''}" style="font-weight:700; color:${ok ? 'var(--green)' : 'var(--red)'};">
+          ${count} / ${req.need} ${ok ? '✅' : '⚠️'}
+        </td>`;
+      }).join('');
+
+      return `<tr><td style="text-align:left; font-weight:600;">${req.label}</td>${cols}</tr>`;
+    }).join('') + '</tbody>';
+
+    table.innerHTML = thead + tbody;
+  }
+
+  function renderAlerts(dates, weekKey) {
+    const box = document.getElementById('alertsBox');
+    const weekData = state.schedules[weekKey];
+    let missingSlots = 0;
+    let sunViolations = [];
+    let hoursViolations = [];
+
+    for (let d = 0; d < 7; d++) {
+      DAILY_REQUIREMENTS.forEach(req => {
+        const count = state.employees.filter(emp => {
+          const s = SHIFTS[weekData[emp.id]?.[d]?.shift];
+          return s && s.station === req.station && emp.role === req.role;
+        }).length;
+        if (count < req.need) missingSlots += (req.need - count);
+      });
+    }
+
+    state.employees.forEach(emp => {
+      const workDays = weekData[emp.id].filter(c => c.shift !== 'OFF' && c.shift !== 'LEAVE').length;
+      if (workDays > emp.daysPerWeek) hoursViolations.push(emp.name);
+      if (countWorkedSundaysInMonth(emp.id, dates[6]) > 2) sunViolations.push(emp.name);
+    });
+
+    box.innerHTML = `
+      <div class="alert-item ${missingSlots === 0 ? 'alert-ok' : 'alert-warn'}">
+        <b>Στελέχωση Πόστων:</b> ${missingSlots === 0 ? 'Πλήρης κάλυψη όλη την εβδομάδα!' : `Λείπουν ${missingSlots} βάρδιες συνολικά (δες πίνακα κάλυψης).`}
+      </div>
+      <div class="alert-item ${sunViolations.length === 0 ? 'alert-ok' : 'alert-warn'}">
+        <b>Κυριακές Μήνα (Max 2):</b> ${sunViolations.length === 0 ? 'Όλοι οι εργαζόμενοι εντός ορίου.' : `Υπέρβαση: ${sunViolations.join(', ')}`}
+      </div>
+      <div class="alert-item ${hoursViolations.length === 0 ? 'alert-ok' : 'alert-warn'}">
+        <b>Όριο Εβδομάδας (8ωρα):</b> ${hoursViolations.length === 0 ? 'Καμία υπέρβαση συμβατικών ημερών.' : `Υπέρβαση: ${hoursViolations.join(', ')}`}
+      </div>
+    `;
+  }
+
+  function renderEmployeesTable() {
+    document.getElementById('empCount').textContent = state.employees.length;
+    const table = document.getElementById('empTable');
+
+    let thead = `<thead><tr>
+      <th style="text-align:left;">Ονοματεπώνυμο</th>
+      <th>Ειδικότητα</th>
+      <th>Σύμβαση</th>
+      <th>Στάνταρ Ωράριο (Locked)</th>
+      <th>Σταθερό Ρεπό</th>
+      <th>Ενέργειες</th>
+    </tr></thead>`;
+
+    if (state.employees.length === 0) {
+      table.innerHTML = thead + `<tbody><tr><td colspan="6" style="padding:20px; color:var(--muted);">Δεν έχουν καταχωρηθεί εργαζόμενοι.</td></tr></tbody>`;
+      return;
+    }
+
+    let tbody = '<tbody>' + state.employees.map(emp => `<tr>
+      <td style="text-align:left; font-weight:700;">${emp.name}</td>
+      <td>${emp.role}</td>
+      <td>${emp.daysPerWeek}ήμερο (${emp.daysPerWeek * 8}ω)</td>
+      <td>${emp.fixedShift ? `<span class="tag-fixed">🔒 ${SHIFTS[emp.fixedShift]?.label}</span>` : '<span style="color:var(--muted);">Ελεύθερο (Shuffle)</span>'}</td>
+      <td>${emp.fixedOff !== '' ? DAYS_GR[Number(emp.fixedOff)] : '—'}</td>
+      <td>
+        <button class="btn-outline btn-sm" onclick="toggleEmpFixed('${emp.id}')">📌 Εναλλαγή Στάνταρ</button>
+        <button class="btn-danger btn-sm" onclick="deleteEmployee('${emp.id}')">Διαγραφή</button>
+      </td>
+    </tr>`).join('') + '</tbody>';
+
+    table.innerHTML = thead + tbody;
+  }
+
+  // ====== DEMO DATA FOR TESTING ======
+  function seedDemoData() {
+    if (state.employees.length > 0 && !confirm('Θα προστεθεί δοκιμαστική ομάδα 12 ατόμων για να τεστάρεις το Shuffle. Συνέχεια;')) {
+      return;
+    }
+    const demo = [
+      { id: 'd1',  name: 'Γιώργος Κ. (Στάνταρ Πρωί)', role: 'Barista',         daysPerWeek: 5, prefStation: 'coffee1',  fixedShift: 'coffee1_early', fixedOff: '6' },
+      { id: 'd2',  name: 'Μαρία Π.',                   role: 'Barista',         daysPerWeek: 5, prefStation: 'coffee1',  fixedShift: '',              fixedOff: '' },
+      { id: 'd3',  name: 'Κώστας Δ.',                  role: 'Barista',         daysPerWeek: 6, prefStation: 'coffee1',  fixedShift: '',              fixedOff: '' },
+      { id: 'd4',  name: 'Ελένη Σ.',                   role: 'Barista',         daysPerWeek: 5, prefStation: 'coffee2',  fixedShift: '',              fixedOff: '' },
+      { id: 'd5',  name: 'Δημήτρης Λ.',                role: 'Barista',         daysPerWeek: 6, prefStation: 'coffee2',  fixedShift: '',              fixedOff: '' },
+      { id: 'd6',  name: 'Νίκος Μ.',                   role: 'Barista',         daysPerWeek: 5, prefStation: 'any',      fixedShift: '',              fixedOff: '' },
+      { id: 'd7',  name: 'Άννα Τ. (Στάνταρ Ταμείο)',   role: 'Ταμίας',          daysPerWeek: 5, prefStation: 'coffee1',  fixedShift: 'coffee1_early', fixedOff: '0' },
+      { id: 'd8',  name: 'Σοφία Β.',                   role: 'Ταμίας',          daysPerWeek: 6, prefStation: 'coffee2',  fixedShift: '',              fixedOff: '' },
+      { id: 'd9',  name: 'Κατερίνα Ρ.',                role: 'Ταμίας',          daysPerWeek: 5, prefStation: 'any',      fixedShift: '',              fixedOff: '' },
+      { id: 'd10', name: 'Πέτρος Α.',                  role: 'Βοηθός Κουζίνας', daysPerWeek: 5, prefStation: 'sandwich', fixedShift: '',              fixedOff: '' },
+      { id: 'd11', name: 'Χρήστος Γ.',                 role: 'Βοηθός Κουζίνας', daysPerWeek: 6, prefStation: 'sandwich', fixedShift: '',              fixedOff: '' },
+      { id: 'd12', name: 'Βασίλης Ν. (Ζυμωτής)',       role: 'Βοηθός Κουζίνας', daysPerWeek: 5, prefStation: 'dough',    fixedShift: 'dough_main',    fixedOff: '' },
+      { id: 'd13', name: 'Τάκης Ζ.',                   role: 'Βοηθός Κουζίνας', daysPerWeek: 6, prefStation: 'any',      fixedShift: '',              fixedOff: '' }
+    ];
+    state.employees = demo;
+    state.schedules = {};
+    ensureWeekSchedule();
+    saveState();
+    renderAll();
+  }
+
+  function resetAllData() {
+    if (!confirm('Να διαγραφούν όλα τα δοκιμαστικά δεδομένα του Bakshifts;')) return;
+    localStorage.removeItem('bakshifts_v1');
+    state = { weekOffset: 0, employees: [], schedules: {} };
+    renderAll();
+  }
+
+  // Init
+  loadState();
+  renderAll();
+</script>
+</body>
+</html>
