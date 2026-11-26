@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Φόρμα Πρόσληψης Εργαζομένου</title>
+  <style>
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --primary: #1e293b;
+      --accent: #d97706;
+      --blue: #2563eb;
+      --green: #16a34a;
+      --red: #dc2626;
+      --amber-bg: #fffbeb;
+      --amber-border: #f59e0b;
+      --amber-text: #92400e;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --muted: #64748b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .header-title {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+
+    .header-sub {
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      margin-top: 2px;
+    }
+
+    .container {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .intro-banner {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 5px solid var(--blue);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+
+    .intro-banner-title {
+      font-weight: 800;
+      font-size: 0.96rem;
+      color: #1e3a8a;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mode-pill {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 700;
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+
+    .mode-pill.demo {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .alert-box {
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
+      border-left: 5px solid;
+    }
+
+    .alert-warn {
+      background: var(--amber-bg);
+      border-color: var(--amber-border);
+      color: var(--amber-text);
+    }
+
+    .alert-error {
+      background: #fef2f2;
+      border-color: var(--red);
+      color: #991b1b;
+    }
+
+    .alert-ok {
+      background: #f0fdf4;
+      border-color: var(--green);
+      color: #166534;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #334155;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .file-row {
+      border: 1px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 12px;
+      background: #f8fafc;
+      margin-bottom: 12px;
+    }
+
+    .file-meta {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .missing-tag {
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .attached-tag {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .draft-status {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-outline { background: #fff; color: var(--text); border: 1px solid var(--border); }
+    .btn-danger-soft { background: #fee2e2; color: var(--red); padding: 6px 10px; font-size: 0.78rem; }
+
+    .email-preview {
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 10px;
+      padding: 14px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      margin-top: 10px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1 class="header-title">Στοιχεία Πρόσληψης Εργαζομένου</h1>
+      <div class="header-sub">Συμπλήρωσε τα στοιχεία και τα δικαιολογητικά σου με ασφάλεια</div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <label for="submissionMode" style="color:#fff; margin:0; font-size:0.8rem;">Λειτουργία:</label>
+      <select id="submissionMode" style="width:auto; padding:6px 10px; font-size:0.84rem;" onchange="handleModeChange()">
+        <option value="normal">Κανονική πρόσληψη</option>
+        <option value="demo">Δοκιμαστικό</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Κοινό εισαγωγικό κείμενο στην αρχή της σελίδας και της εξαγωγής email -->
+    <div class="intro-banner" id="topIntroBanner">
+      <div class="intro-banner-title">
+        <span id="introHeading">Ενημέρωση Νέας Πρόσληψης</span>
+        <span class="mode-pill" id="modeBadge">Κανονική πρόσληψη</span>
+      </div>
+      <div id="introBodyText">
+        Παρακαλούμε συμπληρώστε τα πλήρη στοιχεία σας και επισυνάψτε τα απαιτούμενα έγγραφα για την ολοκλήρωση της διαδικασίας πρόσληψης.
+      </div>
+    </div>
+
+    <!-- Ειδοποίηση ελλιπών επισυναπτόμενων αρχείων -->
+    <div class="alert-box alert-warn hidden" id="missingFilesAlert"></div>
+    <div class="alert-box alert-ok hidden" id="statusMessageBox"></div>
+
+    <div class="card">
+      <div class="draft-status">
+        <span id="draftSaveLabel">💾 Προσωρινή αποθήκευση ενεργή</span>
+        <button type="button" class="btn-outline" style="padding:6px 10px; font-size:0.8rem;" onclick="clearDraft()">
+          🗑️ Καθαρισμός προχείρου
+        </button>
+      </div>
+
+      <form id="onboardingForm" onsubmit="handleSubmit(event)">
+        <div class="grid-2">
+          <div class="field">
+            <label for="fullName">Ονοματεπώνυμο *</label>
+            <input type="text" id="fullName" name="fullName" required placeholder="π.χ. Μαρία Παπαδοπούλου" />
+          </div>
+          <div class="field">
+            <label for="phone">Τηλέφωνο *</label>
+            <input type="tel" id="phone" name="phone" required placeholder="π.χ. 6900000000" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required placeholder="name@example.com" />
+          </div>
+          <div class="field">
+            <label for="startDate">Ημερομηνία Έναρξης</label>
+            <input type="date" id="startDate" name="startDate" />
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="specialty">Ειδικότητα / Πόστο</label>
+            <input type="text" id="specialty" name="specialty" placeholder="π.χ. Barista, Ταμίας, Κουζίνα" />
+          </div>
+          <div class="field">
+            <label for="iban">IBAN</label>
+            <input type="text" id="iban" name="iban" placeholder="GR..." />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Σημειώσεις</label>
+          <textarea id="notes" name="notes" placeholder="Τυχόν επιπλέον πληροφορίες..."></textarea>
+        </div>
+
+        <h3 style="margin:16px 0 10px; font-size:1rem;">Επισυναπτόμενα Αρχεία</h3>
+
+        <div class="file-row">
+          <label for="fileIdCard">Ταυτότητα / Διαβατήριο *</label>
+          <input type="file" id="fileIdCard" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileChange('idCard', this)" />
+          <div class="file-meta" id="meta-idCard"></div>
+        </div>
+
+        <div class="file-row">
+          <label for="fileAfmAmka">Έγγραφο ΑΦΜ / ΑΜΚΑ / ΙΒΑΝ *</label>
+          <input type="file" id="fileAfmAmka" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileChange('afmAmka', this)" />
+          <div class="file-meta" id="meta-afmAmka"></div>
+        </div>
+
+        <div class="file-row">
+          <label for="fileOther">Επιπλέον Έγγραφο (προαιρετικό / π.χ. πιστοποιητικό)</label>
+          <input type="file" id="fileOther" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileChange('other', this)" />
+          <div class="file-meta" id="meta-other"></div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn-success">✅ Αποστολή &amp; Εξαγωγή Email</button>
+          <button type="button" class="btn-primary" onclick="exportToEmail()">✉️ Εξαγωγή σε Email</button>
+          <button type="button" class="btn-outline" onclick="saveDraftNow()">💾 Αποθήκευση Προχείρου</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card hidden" id="emailOutputCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+        <h3 style="margin:0; font-size:1rem;">✉️ Κείμενο Εξαγωγής Email</h3>
+        <button type="button" class="btn-outline" style="padding:6px 10px; font-size:0.8rem;" onclick="copyEmailText()">
+          📋 Αντιγραφή Κειμένου
+        </button>
+      </div>
+      <div class="email-preview" id="emailPreviewBox"></div>
+    </div>
+  </div>
+
+  <script>
+    const INTRO_TEXT_NORMAL =
+      'ΚΑΛΟΝΗΧΤΑ / ΚΑΛΗΜΕΡΑ — ΝΕΑ ΠΡΟΣΛΗΨΗ: Ακολουθούν τα στοιχεία και τα δικαιολογητικά του εργαζομένου για την ένταξή του στο κατάστημα.';
+    const INTRO_TEXT_DEMO =
+      'ΔΟΚΙΜΑΣΤΙΚΗ ΕΞΑΓΩΓΗ ΦΟΡΜΑΣ: Ακολουθούν τα δοκιμαστικά στοιχεία και τα δικαιολογητικά του εργαζομένου.';
+
+    const FILE_SLOTS = [
+      { key: 'idCard', label: 'Ταυτότητα / Διαβατήριο', required: true },
+      { key: 'afmAmka', label: 'Έγγραφο ΑΦΜ / ΑΜΚΑ / ΙΒΑΝ', required: true },
+      { key: 'other', label: 'Επιπλέον Έγγραφο', required: false }
+    ];
+
+    function getDraftStorageKey() {
+      const params = new URLSearchParams(window.location.search);
+      const linkId = params.get('token') || params.get('invite') || params.get('id') || 'default';
+      return `employee_onboarding_draft_v1_${linkId}`;
+    }
+
+    const STORAGE_KEY = getDraftStorageKey();
+
+    let draftState = {
+      mode: 'normal',
+      fields: {
+        fullName: '',
+        phone: '',
+        email: '',
+        startDate: '',
+        specialty: '',
+        iban: '',
+        notes: ''
+      },
+      files: {},
+      savedAt: null
+    };
+
+    function getIntroHeaderText(mode = draftState.mode) {
+      return mode === 'demo' ? INTRO_TEXT_DEMO : INTRO_TEXT_NORMAL;
+    }
+
+    function renderIntroBanner() {
+      const mode = draftState.mode === 'demo' ? 'demo' : 'normal';
+      const badge = document.getElementById('modeBadge');
+      const heading = document.getElementById('introHeading');
+      const bodyText = document.getElementById('introBodyText');
+      const modeSelect = document.getElementById('submissionMode');
+
+      if (modeSelect) modeSelect.value = mode;
+      if (badge) {
+        badge.textContent = mode === 'demo' ? 'Δοκιμαστικό' : 'Κανονική πρόσληψη';
+        badge.classList.toggle('demo', mode === 'demo');
+      }
+      if (heading) {
+        heading.textContent = mode === 'demo'
+          ? 'Εισαγωγικό Κείμενο (Δοκιμαστικό)'
+          : 'Εισαγωγικό Κείμενο (Κανονική πρόσληψη)';
+      }
+      if (bodyText) {
+        bodyText.textContent = getIntroHeaderText(mode);
+      }
+    }
+
+    function handleModeChange() {
+      const sel = document.getElementById('submissionMode');
+      draftState.mode = sel.value === 'demo' ? 'demo' : 'normal';
+      renderIntroBanner();
+      saveDraftNow(true);
+      if (!document.getElementById('emailOutputCard').classList.contains('hidden')) {
+        exportToEmail(true);
+      }
+    }
+
+    function readFieldsFromDom() {
+      draftState.fields = {
+        fullName: document.getElementById('fullName').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        startDate: document.getElementById('startDate').value,
+        specialty: document.getElementById('specialty').value,
+        iban: document.getElementById('iban').value,
+        notes: document.getElementById('notes').value
+      };
+    }
+
+    function writeFieldsToDom() {
+      const f = draftState.fields || {};
+      document.getElementById('fullName').value = f.fullName || '';
+      document.getElementById('phone').value = f.phone || '';
+      document.getElementById('email').value = f.email || '';
+      document.getElementById('startDate').value = f.startDate || '';
+      document.getElementById('specialty').value = f.specialty || '';
+      document.getElementById('iban').value = f.iban || '';
+      document.getElementById('notes').value = f.notes || '';
+    }
+
+    function saveDraftNow(silent = false) {
+      readFieldsFromDom();
+      draftState.savedAt = new Date().toISOString();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(draftState));
+        updateDraftLabel();
+        if (!silent) showStatusMessage('Το πρόχειρο αποθηκεύτηκε προσωρινά.', 'ok');
+      } catch (err) {
+        if (!silent) {
+          showStatusMessage(
+            'Τα πεδία αποθηκεύτηκαν, αλλά κάποιο μεγάλο αρχείο δεν χωράει στην προσωρινή μνήμη του browser.',
+            'warn'
+          );
+        }
+      }
+    }
+
+    function updateDraftLabel() {
+      const el = document.getElementById('draftSaveLabel');
+      if (!el) return;
+      if (!draftState.savedAt) {
+        el.textContent = '💾 Προσωρινή αποθήκευση ενεργή (αυτόματη αποθήκευση)';
+        return;
+      }
+      const d = new Date(draftState.savedAt);
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      const ss = String(d.getSeconds()).padStart(2, '0');
+      el.textContent = `💾 Αποθηκεύτηκε προσωρινά στις ${hh}:${mm}:${ss}`;
+    }
+
+    function loadDraft() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          draftState = Object.assign({
+            mode: 'normal',
+            fields: {},
+            files: {},
+            savedAt: null
+          }, parsed);
+          draftState.fields = Object.assign({
+            fullName: '',
+            phone: '',
+            email: '',
+            startDate: '',
+            specialty: '',
+            iban: '',
+            notes: ''
+          }, draftState.fields || {});
+          draftState.files = draftState.files || {};
+        }
+      } catch (e) {}
+    }
+
+    function clearDraft() {
+      if (!confirm('Να διαγραφούν τα προσωρινά αποθηκευμένα στοιχεία και αρχεία;')) return;
+      localStorage.removeItem(STORAGE_KEY);
+      draftState = {
+        mode: draftState.mode || 'normal',
+        fields: {
+          fullName: '',
+          phone: '',
+          email: '',
+          startDate: '',
+          specialty: '',
+          iban: '',
+          notes: ''
+        },
+        files: {},
+        savedAt: null
+      };
+      writeFieldsToDom();
+      document.getElementById('fileIdCard').value = '';
+      document.getElementById('fileAfmAmka').value = '';
+      document.getElementById('fileOther').value = '';
+      renderFileStatuses();
+      updateDraftLabel();
+      showStatusMessage('Το πρόχειρο καθαρίστηκε.', 'ok');
+    }
+
+    function handleFileChange(slotKey, inputEl) {
+      const file = inputEl.files && inputEl.files[0];
+      if (!file) {
+        delete draftState.files[slotKey];
+        renderFileStatuses();
+        saveDraftNow(true);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        draftState.files[slotKey] = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          dataUrl: file.size <= 1.2 * 1024 * 1024 ? reader.result : null
+        };
+        renderFileStatuses();
+        saveDraftNow(true);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeFileSlot(slotKey) {
+      delete draftState.files[slotKey];
+      const inputMap = {
+        idCard: 'fileIdCard',
+        afmAmka: 'fileAfmAmka',
+        other: 'fileOther'
+      };
+      const inp = document.getElementById(inputMap[slotKey]);
+      if (inp) inp.value = '';
+      renderFileStatuses();
+      saveDraftNow(true);
+    }
+
+    function getMissingRequiredFiles() {
+      return FILE_SLOTS.filter(slot => slot.required && !draftState.files?.[slot.key]?.name);
+    }
+
+    function renderFileStatuses() {
+      FILE_SLOTS.forEach(slot => {
+        const metaEl = document.getElementById(`meta-${slot.key}`);
+        if (!metaEl) return;
+        const fileObj = draftState.files?.[slot.key];
+
+        if (fileObj && fileObj.name) {
+          const kb = Math.max(1, Math.round((fileObj.size || 0) / 1024));
+          metaEl.innerHTML = `
+            <span class="attached-tag">📎 Επισυνάφθηκε: ${escapeHtml(fileObj.name)} (${kb} KB)</span>
+            <button type="button" class="btn-danger-soft" onclick="removeFileSlot('${slot.key}')">Αφαίρεση</button>
+          `;
+        } else if (slot.required) {
+          metaEl.innerHTML = `
+            <span class="missing-tag">⚠️ Δεν έχει επισυναφθεί αρχείο (${escapeHtml(slot.label)})</span>
+          `;
+        } else {
+          metaEl.innerHTML = `
+            <span style="color:var(--muted);">Δεν έχει επισυναφθεί επιπλέον αρχείο (προαιρετικό)</span>
+          `;
+        }
+      });
+
+      const missing = getMissingRequiredFiles();
+      const alertBox = document.getElementById('missingFilesAlert');
+      if (alertBox) {
+        if (missing.length > 0) {
+          alertBox.classList.remove('hidden');
+          alertBox.innerHTML = `
+            <b>⚠️ Ειδοποίηση Ελλιπούς Αρχείου:</b> Ο εργαζόμενος δεν έχει επισυνάψει:
+            <b>${missing.map(m => escapeHtml(m.label)).join(', ')}</b>.
+          `;
+        } else {
+          alertBox.classList.add('hidden');
+          alertBox.innerHTML = '';
+        }
+      }
+    }
+
+    function showStatusMessage(msg, type = 'ok') {
+      const box = document.getElementById('statusMessageBox');
+      if (!box) return;
+      box.className = `alert-box alert-${type === 'warn' ? 'warn' : 'ok'}`;
+      box.textContent = msg;
+      box.classList.remove('hidden');
+    }
+
+    function buildEmailBody() {
+      readFieldsFromDom();
+      const f = draftState.fields;
+      const intro = getIntroHeaderText(draftState.mode);
+      const missing = getMissingRequiredFiles();
+
+      const fileLines = FILE_SLOTS.map(slot => {
+        const attached = draftState.files?.[slot.key]?.name;
+        return `- ${slot.label}: ${attached ? attached : 'ΔΕΝ ΕΧΕΙ ΕΠΙΣΥΝΑΦΘΕΙ'}`;
+      });
+
+      const lines = [
+        intro,
+        '',
+        '--- ΣΤΟΙΧΕΙΑ ΕΡΓΑΖΟΜΕΝΟΥ ---',
+        `Ονοματεπώνυμο: ${f.fullName || '-'}`,
+        `Τηλέφωνο: ${f.phone || '-'}`,
+        `Email: ${f.email || '-'}`,
+        `Ημερομηνία Έναρξης: ${f.startDate || '-'}`,
+        `Ειδικότητα / Πόστο: ${f.specialty || '-'}`,
+        `IBAN: ${f.iban || '-'}`,
+        `Σημειώσεις: ${f.notes || '-'}`,
+        '',
+        '--- ΕΠΙΣΥΝΑΠΤΟΜΕΝΑ ΑΡΧΕΙΑ ---',
+        ...fileLines
+      ];
+
+      if (missing.length > 0) {
+        lines.push('');
+        lines.push(`ΠΡΟΣΟΧΗ — ΕΛΛΕΙΠΟΝΤΑ ΑΡΧΕΙΑ: ${missing.map(m => m.label).join(', ')}`);
+      }
+
+      return lines.join('\n');
+    }
+
+    function exportToEmail(previewOnly = false) {
+      const missing = getMissingRequiredFiles();
+      if (missing.length > 0 && !previewOnly) {
+        alert(
+          `Προσοχή: Δεν έχει επισυναφθεί αρχείο για: ${missing.map(m => m.label).join(', ')}. Θα περιληφθεί ειδοποίηση στην εξαγωγή.`
+        );
+      }
+
+      const bodyText = buildEmailBody();
+      const previewCard = document.getElementById('emailOutputCard');
+      const previewBox = document.getElementById('emailPreviewBox');
+      if (previewCard && previewBox) {
+        previewBox.textContent = bodyText;
+        previewCard.classList.remove('hidden');
+      }
+
+      if (!previewOnly) {
+        const subject = encodeURIComponent(
+          draftState.mode === 'demo'
+            ? `Δοκιμαστικό — Πρόσληψη: ${draftState.fields.fullName || 'Νέος Εργαζόμενος'}`
+            : `Νέα Πρόσληψη: ${draftState.fields.fullName || 'Νέος Εργαζόμενος'}`
+        );
+        const body = encodeURIComponent(bodyText);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+      }
+    }
+
+    function copyEmailText() {
+      const text = document.getElementById('emailPreviewBox')?.textContent || buildEmailBody();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showStatusMessage('Το κείμενο του email αντιγράφηκε.', 'ok');
+        });
+      }
+    }
+
+    function handleSubmit(e) {
+      e.preventDefault();
+      readFieldsFromDom();
+      saveDraftNow(true);
+
+      const missing = getMissingRequiredFiles();
+      if (missing.length > 0) {
+        alert(
+          `Ειδοποίηση: Λείπει επισυναπτόμενο αρχείο από τον εργαζόμενο (${missing.map(m => m.label).join(', ')}).`
+        );
+      }
+      exportToEmail(true);
+      showStatusMessage(
+        missing.length > 0
+          ? 'Η φόρμα ετοιμάστηκε με ειδοποίηση για τα αρχεία που λείπουν.'
+          : 'Η φόρμα συμπληρώθηκε πλήρως και είναι έτοιμη για αποστολή.',
+        missing.length > 0 ? 'warn' : 'ok'
+      );
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    loadDraft();
+    writeFieldsToDom();
+    renderIntroBanner();
+    renderFileStatuses();
+    updateDraftLabel();
+
+    document.getElementById('onboardingForm').addEventListener('input', () => {
+      saveDraftNow(true);
+    });
+  </script>
+</body>
+</html>
